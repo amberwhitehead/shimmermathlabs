@@ -4,7 +4,7 @@ title: 'About Me'
 pubDate: 'December 9 2025'
 ---
 
-![Nathan on a mountain outside Wenatchee, WA wearing an orange mountain biking helmet, black shirt, and brown sunglasses.](../assets/me.png)
+<img width="400px" src="/pink.webp" alt="Nathan with long hair, pink pants, and pink and white shoes." />
 
 _Shimmer Math Labs_ is a small software development company that specializes in
 high quality mathematical programming. We build amazing things to make your
