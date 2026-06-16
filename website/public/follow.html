@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who Should I Be Following? — Bluesky interaction analyzer</title>
+<style>
+  :root {
+    --bg: #faf7f4;
+    --panel: #ffffff;
+    --text: #20201e;
+    --muted: #8a857f;
+    --accent: #e2552b;
+    --accent-strong: #c8431b;
+    --accent-soft: rgba(226, 85, 43, 0.10);
+    --border: #e7e1da;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 80px; }
+
+  header h1 {
+    font-size: 22px;
+    margin: 0 0 2px;
+  }
+  header p.sub {
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    box-shadow: var(--shadow);
+  }
+  .input-row input[type="text"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .input-row input[type="text"]:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .input-row select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .input-row button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .input-row button:hover { background: var(--accent-strong); }
+  .input-row button:disabled { opacity: 0.55; cursor: default; }
+
+  .progress {
+    margin-top: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+  .progress[hidden] { display: none; }
+  .progress .ptext { font-size: 14px; font-weight: 600; }
+  .progress .bar-track {
+    margin-top: 8px;
+    height: 8px;
+    background: var(--accent-soft);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .progress .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+  .progress .log {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .error {
+    margin-top: 14px;
+    background: #fdecec;
+    border: 1px solid #f3c0b8;
+    color: #9b2a14;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 14px;
+  }
+  .error[hidden] { display: none; }
+
+  .profile {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+  }
+  .profile img.av, .profile .av-fallback {
+    width: 56px; height: 56px; border-radius: 50%;
+    object-fit: cover; background: var(--accent-soft);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-weight: 700; font-size: 22px;
+    flex: none;
+  }
+  .profile .name { font-weight: 700; font-size: 17px; }
+  .profile .handle { color: var(--muted); font-size: 14px; }
+  .profile .counts { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .profile .counts b { color: var(--text); }
+
+  .summary { margin: 16px 2px 10px; font-size: 15px; }
+  .summary b { color: var(--accent); }
+  .controls { margin: 2px 2px 12px; }
+  .controls[hidden] { display: none; }
+  .ctrl {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 13px; color: var(--muted); cursor: pointer;
+    user-select: none;
+  }
+  .ctrl input { cursor: pointer; width: 15px; height: 15px; accent-color: var(--accent); }
+  .cap-note {
+    margin: 0 2px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--accent-soft);
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
+
+  .results { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+  }
+  a.card { cursor: pointer; }
+  a.card:hover { border-color: var(--accent); }
+  .card.followed { opacity: 0.62; background: #f6f4f1; }
+  .card.not-followed {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 2px 10px rgba(226, 85, 43, 0.18);
+  }
+  .card img.av, .card .av-fallback {
+    width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+    background: var(--accent-soft); flex: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-weight: 700;
+  }
+  .card .who { min-width: 0; flex: 1 1 auto; }
+  .card .who .nm { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .who .hd { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+  .chip {
+    font-size: 12px; background: var(--accent-soft); color: var(--accent-strong);
+    border-radius: 20px; padding: 1px 8px; font-weight: 600;
+  }
+  .card .right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex: none; }
+  .score {
+    font-weight: 700; font-size: 16px; color: var(--accent);
+    background: var(--accent-soft); border-radius: 8px; padding: 2px 9px;
+  }
+  .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .tag.should-follow { background: var(--accent); color: #fff; }
+  .tag.following { background: #e7e1da; color: var(--muted); }
+
+  .empty { margin-top: 24px; color: var(--muted); font-size: 14px; text-align: center; }
+  footer { margin-top: 30px; color: var(--muted); font-size: 12px; text-align: center; }
+  footer div + div { margin-top: 6px; }
+  footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Who Should I Be Following?</h1>
+    <p class="sub">Analyze a Bluesky account's recent replies, quotes, reposts, and likes — then surface people they engage with but don't follow.</p>
+  </header>
+
+  <form id="form" class="input-row" autocomplete="off">
+    <input id="handle" type="text" placeholder="@handle.bsky.social" aria-label="Bluesky handle">
+    <select id="window" aria-label="Time window">
+      <option value="1">1 day</option>
+      <option value="7" selected>7 days</option>
+      <option value="14">14 days</option>
+      <option value="30">30 days</option>
+    </select>
+    <button id="go" type="submit">Analyze</button>
+  </form>
+
+  <div id="progress" class="progress" hidden>
+    <div id="ptext" class="ptext">Starting…</div>
+    <div class="bar-track"><div id="bar" class="bar-fill"></div></div>
+    <div id="log" class="log"></div>
+  </div>
+
+  <div id="error" class="error" hidden></div>
+
+  <div id="profile"></div>
+  <div id="summary"></div>
+  <div id="controls" class="controls" hidden>
+    <label class="ctrl"><input type="checkbox" id="only-unfollowed"><span>Only show accounts I don't follow</span></label>
+  </div>
+  <div id="results"></div>
+
+  <footer>
+    <div>Public, read-only, client-side. No login, no tracking. Runs entirely in your browser.</div>
+    <div class="promo">Brought to you by <a href="https://bsky.app/profile/shimmermathlabs.com" target="_blank" rel="noopener noreferrer">Shimmer Math Labs</a> — obviously you should follow me.</div>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+const API = "https://public.api.bsky.app/xrpc";
+const DAY = 86400000;
+
+const state = {
+  did: null,
+  selfDid: null,
+  pds: null,
+  selfProfile: null,
+  raw: { likes: [], replies: [], quotes: [], reposts: [] },
+  follows: new Set(),
+  profileCache: new Map(),
+  windowDays: 7,
+  capsHit: { feed: false, likes: false, follows: false },
+};
+
+const $ = (id) => document.getElementById(id);
+
+function qs(params) {
+  const sp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v === null || v === undefined) continue;
+    if (Array.isArray(v)) for (const x of v) sp.append(k, x);
+    else sp.append(k, v);
+  }
+  return sp.toString();
+}
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+async function fetchJson(url) {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    let res;
+    try { res = await fetch(url, { headers: { accept: "application/json" } }); }
+    catch (e) { throw new Error("Network error reaching " + url + " (" + e.message + ")."); }
+    if (res.status === 429) {
+      const ra = res.headers.get("Retry-After");
+      const wait = ra ? parseInt(ra, 10) : (1 + attempt * 2);
+      await sleep(Math.min(wait, 30) * 1000);
+      continue;
+    }
+    if (!res.ok) {
+      let body = {};
+      try { body = await res.json(); } catch (_) {}
+      throw new Error("HTTP " + res.status + (body.error ? " — " + body.error : "") + (body.message ? " (" + body.message + ")" : ""));
+    }
+    return res.json();
+  }
+  throw new Error("Rate limited after repeated retries. Try again in a moment.");
+}
+
+const apiResolveHandle = (handle) => fetchJson(API + "/com.atproto.identity.resolveHandle?" + qs({ handle }));
+const apiGetProfile = (actor) => fetchJson(API + "/app.bsky.actor.getProfile?" + qs({ actor }));
+const apiGetAuthorFeed = (actor, cursor) => fetchJson(API + "/app.bsky.feed.getAuthorFeed?" + qs({ actor, limit: 100, filter: "posts_with_replies", cursor }));
+const apiGetFollows = (actor, cursor) => fetchJson(API + "/app.bsky.graph.getFollows?" + qs({ actor, limit: 100, cursor }));
+const apiGetProfiles = (actors) => fetchJson(API + "/app.bsky.actor.getProfiles?" + qs({ actors }));
+const apiListLikes = (pds, did, cursor) => fetchJson(pds.replace(/\/$/, "") + "/xrpc/com.atproto.repo.listRecords?" + qs({ repo: did, collection: "app.bsky.feed.like", limit: 100, cursor }));
+
+async function resolvePds(did) {
+  let doc;
+  if (did.startsWith("did:plc:")) {
+    doc = await fetchJson("https://plc.directory/" + encodeURIComponent(did));
+  } else if (did.startsWith("did:web:")) {
+    const domain = did.slice("did:web:".length);
+    doc = await fetchJson("https://" + domain + "/.well-known/did.json");
+  } else {
+    throw new Error("Unsupported DID method: " + did);
+  }
+  const svc = (doc.service || []).find((s) => s.id === "#atproto_pds");
+  if (!svc || !svc.serviceEndpoint) throw new Error("No PDS endpoint found in DID document.");
+  return svc.serviceEndpoint;
+}
+
+function didFromAtUri(uri) {
+  if (!uri || typeof uri !== "string") return null;
+  const m = uri.match(/^at:\/\/([^/]+)/);
+  const did = m && m[1];
+  return did && did.startsWith("did:") ? did : null;
+}
+
+function ingestFeedItem(item) {
+  const post = item.post;
+  if (!post || !post.author) return;
+  if (item.reason && item.reason.$type === "app.bsky.feed.defs#reasonRepost") {
+    const did = post.author.did;
+    const ts = Date.parse(item.reason.indexedAt || post.indexedAt);
+    if (did) state.raw.reposts.push({ did, ts });
+    return;
+  }
+  const ts = Date.parse((post.record && post.record.createdAt) || post.indexedAt);
+  if (item.reply && item.reply.parent) {
+    const p = item.reply.parent;
+    if (!p.notFound && !p.blocked && p.author && p.author.did) {
+      state.raw.replies.push({ did: p.author.did, ts });
+    }
+  }
+  const emb = post.embed;
+  if (emb && (emb.$type === "app.bsky.embed.record#view" || emb.$type === "app.bsky.embed.recordWithMedia#view")) {
+    const rec = emb.$type === "app.bsky.embed.record#view" ? emb.record : (emb.record && emb.record.record);
+    if (rec && rec.$type === "app.bsky.embed.record#viewRecord" && rec.author && rec.author.did) {
+      state.raw.quotes.push({ did: rec.author.did, ts });
+    }
+  }
+}
+
+function ingestLike(rec) {
+  const v = rec.value || {};
+  const uri = v.subject && v.subject.uri;
+  const did = didFromAtUri(uri);
+  if (!did) return;
+  state.raw.likes.push({ did, ts: Date.parse(v.createdAt) });
+}
+
+function feedItemTs(item) {
+  if (item.reason && item.reason.$type === "app.bsky.feed.defs#reasonRepost") {
+    return Date.parse(item.reason.indexedAt || (item.post && item.post.indexedAt));
+  }
+  return Date.parse((item.post && item.post.record && item.post.record.createdAt) || (item.post && item.post.indexedAt));
+}
+
+function resetData() {
+  state.raw = { likes: [], replies: [], quotes: [], reposts: [] };
+  state.follows = new Set();
+  state.profileCache = new Map();
+  state.capsHit = { feed: false, likes: false, follows: false };
+}
+
+let lastPhaseLabel = "";
+function addLog(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  $("log").appendChild(div);
+  $("log").scrollTop = $("log").scrollHeight;
+}
+function setPhase(label, sub, pct) {
+  if (label !== lastPhaseLabel && lastPhaseLabel) addLog("✓ " + lastPhaseLabel);
+  lastPhaseLabel = label;
+  $("ptext").textContent = sub ? label + " — " + sub : label;
+  if (pct !== undefined) $("bar").style.width = Math.round(pct * 100) + "%";
+}
+function resetProgress() {
+  lastPhaseLabel = "";
+  $("log").innerHTML = "";
+  $("bar").style.width = "0%";
+  $("ptext").textContent = "Starting…";
+  $("progress").hidden = false;
+}
+function finishProgress() {
+  if (lastPhaseLabel) addLog("✓ " + lastPhaseLabel);
+  lastPhaseLabel = "";
+  $("ptext").textContent = "Complete";
+  $("bar").style.width = "100%";
+}
+function showError(msg) {
+  const e = $("error");
+  e.textContent = msg;
+  e.hidden = false;
+  $("progress").hidden = true;
+}
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function avatarNode(profile, size) {
+  if (profile && profile.avatar) {
+    const img = document.createElement("img");
+    img.className = "av";
+    img.src = profile.avatar;
+    img.alt = "";
+    img.width = size; img.height = size;
+    img.onerror = () => { img.replaceWith(avatarFallback(profile)); };
+    return img;
+  }
+  return avatarFallback(profile);
+}
+function avatarFallback(profile) {
+  const d = el("div", "av-fallback");
+  const name = (profile && (profile.displayName || profile.handle)) || "?";
+  d.textContent = name.charAt(0).toUpperCase();
+  return d;
+}
+
+function renderProfile(p) {
+  const host = $("profile");
+  host.innerHTML = "";
+  const card = el("div", "profile");
+  card.appendChild(avatarNode(p, 56));
+  const info = el("div");
+  info.appendChild(el("div", "name", p.displayName || "@" + p.handle));
+  info.appendChild(el("div", "handle", "@" + p.handle));
+  const counts = el("div", "counts");
+  counts.innerHTML =
+    "<b>" + (p.followersCount || 0).toLocaleString() + "</b> followers · " +
+    "<b>" + (p.followsCount || 0).toLocaleString() + "</b> following · " +
+    "<b>" + (p.postsCount || 0).toLocaleString() + "</b> posts";
+  info.appendChild(counts);
+  card.appendChild(info);
+  host.appendChild(card);
+}
+
+async function hydrateAll() {
+  const need = new Set();
+  for (const arr of Object.values(state.raw)) for (const e of arr) need.add(e.did);
+  need.delete(state.selfDid);
+  const missing = [...need].filter((d) => !state.profileCache.has(d));
+  for (let i = 0; i < missing.length; i += 25) {
+    const batch = missing.slice(i, i + 25);
+    const res = await apiGetProfiles(batch);
+    for (const p of res.profiles || []) state.profileCache.set(p.did, p);
+    setPhase("Hydrating profiles", Math.min(i + 25, missing.length) + "/" + missing.length,
+      0.88 + ((i + 25) / Math.max(missing.length, 1)) * 0.09);
+  }
+}
+
+function aggregate() {
+  const cutoff = Date.now() - state.windowDays * DAY;
+  const map = new Map();
+  function add(arr, key) {
+    for (const e of arr) {
+      if (!e || e.ts < cutoff) continue;
+      if (e.did === state.selfDid) continue;
+      let m = map.get(e.did);
+      if (!m) { m = { likes: 0, replies: 0, quotes: 0, reposts: 0 }; map.set(e.did, m); }
+      m[key]++;
+    }
+  }
+  add(state.raw.likes, "likes");
+  add(state.raw.replies, "replies");
+  add(state.raw.quotes, "quotes");
+  add(state.raw.reposts, "reposts");
+  for (const m of map.values()) m.score = m.likes * 1 + m.replies * 3 + m.quotes * 3 + m.reposts * 2;
+  const rows = [...map.entries()].map(([did, m]) => ({ did, ...m, followed: state.follows.has(did) }));
+  rows.sort((a, b) => b.score - a.score || b.likes - a.likes || b.replies - a.replies);
+  return rows;
+}
+
+function renderResults(rows) {
+  const summaryHost = $("summary");
+  const resultsHost = $("results");
+  summaryHost.innerHTML = "";
+  resultsHost.innerHTML = "";
+
+  const notFollowed = rows.filter((r) => !r.followed).length;
+  if (rows.length === 0) {
+    $("controls").hidden = true;
+    summaryHost.innerHTML = "";
+    resultsHost.appendChild(el("div", "empty", "No interactions found in this window."));
+    return;
+  }
+  $("controls").hidden = false;
+  const shown = $("only-unfollowed").checked ? rows.filter((r) => !r.followed) : rows;
+  const s = el("div", "summary");
+  s.innerHTML = "Interacted with <b>" + rows.length + "</b> accounts in the last " + state.windowDays +
+    " day" + (state.windowDays === 1 ? "" : "s") + " — <b>" + notFollowed + "</b> " +
+    (notFollowed === 1 ? "is someone you don't follow." : "are people you don't follow.");
+  summaryHost.appendChild(s);
+
+  const notes = [];
+  if (state.capsHit.feed) notes.push("hit the feed paging cap — oldest activity may be missing");
+  if (state.capsHit.likes) notes.push("hit the ~5,000 like cap");
+  if (state.capsHit.follows) notes.push("hit the ~3,000 follow cap (follow set may be incomplete)");
+  if (notes.length) {
+    const n = el("div", "cap-note", "Note: " + notes.join("; ") + ".");
+    summaryHost.appendChild(n);
+  }
+
+  if (shown.length === 0) {
+    resultsHost.appendChild(el("div", "empty", "Everyone you interacted with in this window is already followed."));
+    return;
+  }
+
+  for (const r of shown) {
+    const profile = state.profileCache.get(r.did) || { handle: r.did };
+    const followed = r.followed;
+    const card = followed ? el("div", "card followed") : el("a", "card not-followed");
+    if (!followed) {
+      card.href = "https://bsky.app/profile/" + r.did;
+      card.target = "_blank";
+      card.rel = "noopener noreferrer";
+    }
+    card.appendChild(avatarNode(profile, 44));
+
+    const who = el("div", "who");
+    who.appendChild(el("div", "nm", profile.displayName || ("@" + (profile.handle || r.did))));
+    who.appendChild(el("div", "hd", profile.handle ? "@" + profile.handle : r.did));
+    const chips = el("div", "chips");
+    if (r.likes) chips.appendChild(el("span", "chip", "♥ " + r.likes));
+    if (r.replies) chips.appendChild(el("span", "chip", "↩ " + r.replies));
+    if (r.quotes) chips.appendChild(el("span", "chip", "❞ " + r.quotes));
+    if (r.reposts) chips.appendChild(el("span", "chip", "🔁 " + r.reposts));
+    who.appendChild(chips);
+    card.appendChild(who);
+
+    const right = el("div", "right");
+    right.appendChild(el("div", "score", String(r.score)));
+    right.appendChild(el("span", followed ? "tag following" : "tag should-follow",
+      followed ? "✓ Following" : "You should follow"));
+    card.appendChild(right);
+
+    resultsHost.appendChild(card);
+  }
+}
+
+function rederive() {
+  if (!state.selfDid) return;
+  renderResults(aggregate());
+}
+
+async function run(handleInput, days) {
+  state.windowDays = days;
+  $("error").hidden = true;
+  $("profile").innerHTML = "";
+  $("summary").innerHTML = "";
+  $("results").innerHTML = "";
+  $("controls").hidden = true;
+  resetData();
+  resetProgress();
+  $("go").disabled = true;
+
+  try {
+    const clean = handleInput.replace(/^@/, "").trim();
+    if (!clean) throw new Error("Please enter a Bluesky handle.");
+
+    setPhase("Resolving handle", "@" + clean, 0.04);
+    const did = (await apiResolveHandle(clean)).did;
+    state.did = did;
+    state.selfDid = did;
+
+    setPhase("Resolving PDS", did.slice(0, 18) + "…", 0.10);
+    let pds;
+    try { pds = await resolvePds(did); }
+    catch (e) { throw new Error("Could not resolve PDS for " + did + " (" + e.message + "). This can happen for did:web accounts whose domain doesn't send permissive CORS headers."); }
+    state.pds = pds;
+
+    setPhase("Fetching profile", "@" + clean, 0.16);
+    const profile = await apiGetProfile(did);
+    state.selfProfile = profile;
+    renderProfile(profile);
+
+    const cutoff = Date.now() - days * DAY;
+
+    setPhase("Loading feed", "starting", 0.18);
+    const FEED_CAP = 50;
+    let cursor = null, pages = 0;
+    do {
+      const page = await apiGetAuthorFeed(did, cursor);
+      pages++;
+      const feed = page.feed || [];
+      for (const item of feed) ingestFeedItem(item);
+      setPhase("Loading feed", "page " + pages, 0.18 + Math.min(pages, 20) / 20 * 0.27);
+      cursor = page.cursor;
+      if (feed.length === 0) { cursor = null; break; }
+      if (feedItemTs(feed[feed.length - 1]) < cutoff) break;
+    } while (cursor && pages < FEED_CAP);
+    if (pages >= FEED_CAP && cursor) state.capsHit.feed = true;
+
+    setPhase("Loading likes", "starting", 0.47);
+    const LIKES_CAP = 50;
+    cursor = null; pages = 0;
+    do {
+      const page = await apiListLikes(state.pds, did, cursor);
+      pages++;
+      const recs = page.records || [];
+      for (const r of recs) ingestLike(r);
+      setPhase("Loading likes", "page " + pages, 0.47 + Math.min(pages, 50) / 50 * 0.25);
+      cursor = page.cursor;
+      if (recs.length === 0) { cursor = null; break; }
+      const oldest = Date.parse((recs[recs.length - 1].value || {}).createdAt);
+      if (oldest < cutoff) break;
+    } while (cursor && pages < LIKES_CAP);
+    if (pages >= LIKES_CAP && cursor) state.capsHit.likes = true;
+
+    setPhase("Loading follows", "starting", 0.74);
+    const FOLLOWS_CAP = 30;
+    cursor = null; pages = 0;
+    do {
+      const page = await apiGetFollows(did, cursor);
+      pages++;
+      for (const f of page.follows || []) state.follows.add(f.did);
+      setPhase("Loading follows", "page " + pages, 0.74 + Math.min(pages, 30) / 30 * 0.12);
+      cursor = page.cursor;
+      if ((page.follows || []).length === 0) { cursor = null; break; }
+    } while (cursor && pages < FOLLOWS_CAP);
+    if (pages >= FOLLOWS_CAP && cursor) state.capsHit.follows = true;
+
+    setPhase("Hydrating profiles", "", 0.88);
+    await hydrateAll();
+
+    setPhase("Analyzing", "", 0.98);
+    renderResults(aggregate());
+
+    finishProgress();
+  } catch (e) {
+    showError(e.message || String(e));
+  } finally {
+    $("go").disabled = false;
+  }
+}
+
+$("form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const handle = $("handle").value.trim();
+  const days = parseInt($("window").value, 10);
+  if (handle) run(handle, days);
+});
+$("window").addEventListener("change", () => {
+  state.windowDays = parseInt($("window").value, 10);
+  rederive();
+});
+$("only-unfollowed").addEventListener("change", rederive);
+</script>
+</body>
+</html>
