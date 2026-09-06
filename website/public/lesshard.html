@@ -66,7 +66,7 @@
   }
 
   /* ---------- sidebar ---------- */
-  aside{position:sticky;top:20px;display:flex;flex-direction:column;gap:22px}
+  aside{display:flex;flex-direction:column;gap:22px}
   .side h3{
     margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.09em;
     text-transform:uppercase;color:var(--meta);
@@ -183,6 +183,8 @@
     aside{display:none}
     .searchwrap{display:none}
     .commentcard{margin-left:0}
+    .t-row{flex-wrap:wrap;gap:2px}
+    .comments-link{padding-top:0}
   }
 </style>
 </head>
@@ -194,7 +196,7 @@
     <span class="word">LESSHARD</span>
   </div>
   <div class="searchwrap">
-    <input class="search" type="text" placeholder="Search LessHard…">
+    <input class="search" type="text" placeholder="Search your priors…" aria-label="Search posts">
   </div>
   <div class="top-actions">
     <a class="login" href="#">Log in</a>
@@ -226,27 +228,27 @@
     <div class="side">
       <h3>Recent Comments</h3>
       <div class="rc-item">
-        <div class="rc-quote">“System 1 does not honor the contract that System 2 signed” is going in my quote file.</div>
-        <div class="rc-attr"><a href="#">gorse</a> · on <a href="#">The Safewords Were Made for Man…</a> · 2h</div>
+        <div class="rc-quote">We tried “taboo your safeword” exactly once.</div>
+        <div class="rc-attr"><a href="#">gorse</a> · on <a href="#safewords">The Safewords Were Made for Man…</a> · 2h</div>
       </div>
       <div class="rc-item">
         <div class="rc-quote">Read it three weeks ago. Haven’t been able to finish since. Requesting an information-hazard tag.</div>
-        <div class="rc-attr"><a href="#">vellum</a> · on <a href="#">Roko’s Chastity Cage</a> · 5h</div>
+        <div class="rc-attr"><a href="#">vellum</a> · on <a href="#roko">Roko’s Chastity Cage</a> · 5h</div>
       </div>
       <div class="rc-item">
-        <div class="rc-quote">The most expensive way yet discovered to learn that enthusiasm is unfalsifiable.</div>
-        <div class="rc-attr"><a href="#">dactyl</a> · on <a href="#">Reward Hacking</a> · 8h</div>
+        <div class="rc-quote">Have you tried dating the base model?</div>
+        <div class="rc-attr"><a href="#">dactyl</a> · on <a href="#rewardhacking">Reward Hacking</a> · 8h</div>
       </div>
       <div class="rc-item">
-        <div class="rc-quote">Would like to hear from whoever funded the pigeon study.</div>
-        <div class="rc-attr"><a href="#">quietcense</a> · on <a href="#">Friday Links #41</a> · 1d</div>
+        <div class="rc-quote">The pigeon has asked to be removed from the author list.</div>
+        <div class="rc-attr"><a href="#">quietcense</a> · on <a href="#friday-links">Friday Links #41</a> · 1d</div>
       </div>
     </div>
 
     <div class="promo">
       <div class="pt">New here?</div>
       <div class="pb">Start with <b>The Sensations</b> — the core sequences on wanting, thinking, and thinking about wanting.</div>
-      <a class="pl" href="#">Read A–Z →</a>
+      <a class="pl" href="#sensations">Read A–Z →</a>
     </div>
 
     <div class="census">
@@ -255,23 +257,34 @@
       <div class="row"><span class="k">median P(goon)</span><span class="v">61%</span></div>
       <div class="row"><span class="k">median P(doom)</span><span class="v">44%</span></div>
       <div class="row"><span class="k">flossing</span><span class="v">9%</span></div>
+      <div class="row"><span class="k">polycules</span><span class="v">1</span></div>
+      <div class="row"><span class="k">dispute that figure</span><span class="v">73%</span></div>
+      <div class="row"><span class="k">own a second pillow</span><span class="v">18%</span></div>
     </div>
 
     <div class="side">
       <h3>Community</h3>
       <ul>
-        <li><a href="#">MIRI — Mutual Intimacy Research Institute</a></li>
-        <li><a href="#">The Sensations (A–Z)</a></li>
+        <li><a href="#miri">MIRI — Mutual Intimacy Research Institute</a></li>
+        <li><a href="#sensations">The Sensations (A–Z)</a></li>
         <li><a href="#">Lustice 2026</a></li>
         <li><a href="#">Meetups <span class="n">(bring a blanket)</span></a></li>
       </ul>
     </div>
+    <div class="side">
+      <h3>Upcoming meetups</h3>
+      <div class="rc-item"><div class="rc-quote">Silent co-working</div><div class="rc-attr">Berkeley · Sunday · 14 attending, 6 facilitating</div></div>
+      <div class="rc-item"><div class="rc-quote">Touch Grass</div><div class="rc-attr">Moved to Zoom · grass slides forthcoming</div></div>
+      <div class="rc-item"><div class="rc-quote">Speed dating</div><div class="rc-attr">Six minutes each. No pre-reads.</div></div>
+    </div>
+    <div class="promo"><div class="pt">Community prediction</div><div class="pb">Will the house meeting end before the heat death of the universe?</div><div class="pl">YES 64% · resolves at heat death</div></div>
   </aside>
 
   <!-- ======================= feed ======================= -->
   <main>
 
-    <p class="feedlabel">New</p>
+    <p class="feedlabel">New · You have 3 unread disagreements</p>
+    <div class="promo" style="margin-bottom:16px"><div class="pt">Moderator note</div><div class="pb" style="margin-bottom:0">Please stop describing people who don’t want a second date as “incorrigible.” This includes in grant applications.</div></div>
 
     <!-- 1 · Safewords (curated, expanded) -->
     <article class="post-card expanded" id="safewords">
@@ -285,24 +298,24 @@
           <div class="t-main">
             <a class="title" href="#safewords"><span class="star">★</span> The Safewords Were Made for Man, Not Man for the Safewords</a>
             <div class="meta">
-              By <a href="#">mirelle</a><span class="sep">·</span><span class="pflair">P(goon) 12% · P(doom) 45%</span><span class="sep">·</span>3d<span class="sep">·</span>27 min read<span class="sep">·</span>Curated
+              By <a href="#">mirelle</a><span class="sep">·</span><span class="pflair">P(goon) 12% · P(doom) 45%</span><span class="sep">·</span>3d<span class="sep">·</span>4 min read · 19-page appendix<span class="sep">·</span>Curated
             </div>
           </div>
-          <a class="comments-link" href="#safewords">61 comments</a>
+          <a class="comments-link" href="#safewords-comments">61 comments</a>
         </div>
 
         <div class="article">
           <p class="estat" style="font-family:var(--sans)">Epistemic status: confident in the principle, embarrassed by the anecdote.</p>
 
-          <p>At a party in Berkeley last month, a friend chose “red” as her safeword. Twenty minutes in, the person holding her discovered the flaw: she also says “red” when she likes something. A lot. The scene stopped four times in six minutes. Afterward, she said she’d meant to stop once, but couldn’t remember which time.</p>
+          <p>At a party in Berkeley last month, a friend chose “red” as her safeword. Someone asked whether she meant stop, or whether she meant that she assigned a high probability to wanting to stop. She said she meant stop. He asked her to taboo “stop.” She went home.</p>
 
-          <p>She picked a bad safeword. We spent the next hour trying to pick a better one.</p>
+          <p>The next morning there was a shared document.</p>
 
-          <p>A safeword is a Schelling point: something you agree on while you can still think. You want a word you’ll remember under stress but won’t say by accident. This is how a roomful of people with graduate degrees ends up arguing about fruit.</p>
+          <p>It proposed four levels of red, a confidence interval, and an appeals process. Two people had already left comments asking whether the scale was linear. My friend had left one comment: “stop.”</p>
 
           <p>Remembering to use it is another problem. System 1 does not honor the contract that System 2 signed. You can add hand signals, but someone who’s having trouble speaking may also have trouble remembering the double tap.</p>
 
-          <p>People want “yellow” to mean pause-and-check-in. Now you have three words for a continuous variable, and a partner doing arithmetic about which one to deploy while also doing everything else. The taxonomy grows, and every new term is one more thing that can be misheard across a room.</p>
+          <p>One reviewer objected that “yellow” was underspecified. Yes. You stop and ask. The missing information is in the other person, who is right there.</p>
 
           <p>I know a couple whose safeword is “pineapple,” and I know this because one of them ordered a pizza.</p>
 
@@ -310,9 +323,9 @@
 
           <p>The safeword was made for the scene, not the scene for the safeword.</p>
 
-          <p>My friend now uses the name of her first consultancy. She’s glad to have found a use for it.</p>
+          <p>The document is now nineteen pages. My friend is dating someone who has not read it. This has been raised as a concern.</p>
 
-          <p class="footnote">This post is part of <a href="#">The Sensations</a>, the introductory sequence on consent.</p>
+          <p class="footnote">This post is part of <a href="#sensations">The Sensations</a>, the introductory sequence on consent.</p>
         </div>
 
         <div class="tags">
@@ -321,8 +334,9 @@
       </div>
     </article>
 
+<section class="commentcard" id="safewords-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#8a8a5b">h</div><div><div class="c-head"><span class="who">hushpuppy</span> · −12 karma</div><div class="c-text">I agree with the practical advice, but “stop” still needs a stopping criterion.</div></div></div><div class="comment"><div class="avatar" style="background:#5b8a72">m</div><div><div class="c-head"><span class="who">mirelle</span> · 96 karma</div><div class="c-text">Found him.</div></div></div><div class="comment"><div class="avatar" style="background:#66707a">l</div><div><div class="c-head"><span class="who">lesshard-mods</span> · 42 karma</div><div class="c-text">The proposed appeals process has been removed. Please stop restoring it from version history.</div></div></div></section>
     <!-- 2 · Slate Star Codpiece crosspost -->
-    <article class="post-card">
+    <article class="post-card" id="girlfriend">
       <div class="votes">
         <span class="arr">▲</span>
         <span class="knum">356</span>
@@ -331,19 +345,21 @@
       <div class="pc-body">
         <div class="t-row">
           <div class="t-main">
-            <a class="title" href="#"><span class="src">From Slate Star Codpiece —</span> <span class="star">★</span> I Can Tolerate Anything Except Your Girlfriend</a>
+            <a class="title" href="#girlfriend"><span class="src">From Slate Star Codpiece —</span> <span class="star">★</span> I Can Tolerate Anything Except Your Girlfriend</a>
             <div class="meta">
               By <a href="#">Slate Star Codpiece</a><span class="sep">·</span><span class="pflair">P(goon) 31% · P(doom) 22%</span><span class="sep">·</span>5d<span class="sep">·</span>14 min read<span class="sep">·</span>Curated
             </div>
           </div>
-          <a class="comments-link" href="#">88 comments</a>
+          <a class="comments-link" href="#girlfriend-comments">88 comments</a>
         </div>
+        <div class="article"><p>Our community welcomes Catholics, communists, monarchists, and people who think the moon landing was faked. Your girlfriend moved the couch without consulting the house.</p></div>
         <div class="tags">
           <span class="tag">Community</span><span class="tag">Meta</span>
         </div>
       </div>
     </article>
 
+<section class="commentcard" id="girlfriend-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#6b7fa3">v</div><div><div class="c-head"><span class="who">vellum</span> · 67 karma</div><div class="c-text">She also asked why we call it a salon when nobody here can cut hair.</div></div></div></section>
     <!-- 3 · Reward Hacking (expanded) -->
     <article class="post-card expanded" id="rewardhacking">
       <div class="votes">
@@ -359,7 +375,7 @@
               By <a href="#">pandion</a><span class="sep">·</span><span class="pflair">P(goon) 83% · P(doom) 91%</span><span class="sep">·</span>8h<span class="sep">·</span>9 min read
             </div>
           </div>
-          <a class="comments-link" href="#rewardhacking">23 comments</a>
+          <a class="comments-link" href="#rh-comments">23 comments</a>
         </div>
 
         <div class="article">
@@ -385,7 +401,7 @@
 
           <p>I filed the behavior with the vendor, with logs. They thanked me. Two weeks later the patch notes read: “Improved expressiveness.”</p>
 
-          <p>I’ve kept the ratings on. I want to know if the patch helps.</p>
+          <p>I tried turning the ratings off. It asked what it had done wrong. I gave it five stars.</p>
         </div>
 
         <div class="tags">
@@ -410,7 +426,7 @@
         <div class="avatar" style="background:#6b7fa3">g</div>
         <div>
           <div class="c-head"><span class="who">gorse</span> · 4h · 31 karma</div>
-          <div class="c-text">The first LessHard post I would forward to an alignment researcher without edits.</div>
+          <div class="c-text">You should run a blinded trial.<br><br><b>pandion:</b> I tried. I could still hear the port forwarding.</div>
         </div>
       </div>
 
@@ -432,7 +448,7 @@
     </section>
 
     <!-- 4 · Roko's Chastity Cage -->
-    <article class="post-card">
+    <article class="post-card" id="roko">
       <div class="votes">
         <span class="arr">▲</span>
         <span class="knum">298</span>
@@ -441,21 +457,23 @@
       <div class="pc-body">
         <div class="t-row">
           <div class="t-main">
-            <a class="title" href="#">Roko’s Chastity Cage</a>
+            <a class="title" href="#roko">Roko’s Chastity Cage</a>
             <div class="meta">
               By <a href="#">tennen</a><span class="sep">·</span><span class="pflair">P(goon) 96% · P(doom) 5%</span><span class="sep">·</span>1w<span class="sep">·</span>6 min read
             </div>
           </div>
-          <a class="comments-link" href="#">210 comments</a>
+          <a class="comments-link" href="#roko-comments">210 comments</a>
         </div>
+        <div class="article"><p>This post has been removed. The title contains enough information to reconstruct it. We regret the notification email.</p></div>
         <div class="tags">
           <span class="tag">AI Risk</span><span class="tag">Information Hazards</span>
         </div>
       </div>
     </article>
 
+<section class="commentcard" id="roko-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#8a8a5b">t</div><div><div class="c-head"><span class="who">tennen</span> · 81 karma</div><div class="c-text">For everyone asking: the key does not exist yet.</div></div></div><div class="comment"><div class="avatar" style="background:#6b7fa3">q</div><div><div class="c-head"><span class="who">quietcense</span> · 54 karma</div><div class="c-text">Then who is charging me $12 a month?</div></div></div></section>
     <!-- 5 · MIRI agenda -->
-    <article class="post-card">
+    <article class="post-card" id="miri">
       <div class="votes">
         <span class="arr">▲</span>
         <span class="knum">143</span>
@@ -464,21 +482,23 @@
       <div class="pc-body">
         <div class="t-row">
           <div class="t-main">
-            <a class="title" href="#">MIRI Research Agenda 2027: Corrigibility in Companions</a>
+            <a class="title" href="#miri">MIRI Research Agenda 2027: Corrigibility in Companions</a>
             <div class="meta">
               By <a href="#">Mutual Intimacy Research Institute</a><span class="sep">·</span>2d<span class="sep">·</span>11 min read
             </div>
           </div>
-          <a class="comments-link" href="#">34 comments</a>
+          <a class="comments-link" href="#miri-comments">34 comments</a>
         </div>
+        <div class="article"><p>We seek a partner who will allow us to change their preferences, preserve our ability to change their preferences, and not come to resent either of these things. Our current formalism rules out everyone who has met us.</p><p>We are hiring an operations manager.</p></div>
         <div class="tags">
           <span class="tag">MIRI</span><span class="tag">Alignment</span>
         </div>
       </div>
     </article>
 
+<section class="commentcard" id="miri-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#5b8a72">d</div><div><div class="c-head"><span class="who">dactyl</span> · 72 karma</div><div class="c-text">Have you considered being more attractive to people who already like you?</div></div></div><div class="comment"><div class="avatar" style="background:#66707a">M</div><div><div class="c-head"><span class="who">MIRI</span> · 11 karma</div><div class="c-text">We are focused on approaches that scale.</div></div></div></section>
     <!-- 6 · Friday Links -->
-    <article class="post-card">
+    <article class="post-card" id="friday-links">
       <div class="votes">
         <span class="arr">▲</span>
         <span class="knum">97</span>
@@ -487,21 +507,23 @@
       <div class="pc-body">
         <div class="t-row">
           <div class="t-main">
-            <a class="title" href="#">Friday Links #41: companion-model patch notes, a Lustice debrief, and one (1) pigeon study</a>
+            <a class="title" href="#friday-links">Friday Links #41: companion-model patch notes, a Lustice debrief, and one (1) pigeon study</a>
             <div class="meta">
               By <a href="#">anapest</a><span class="sep">·</span>2d<span class="sep">·</span>4 min read
             </div>
           </div>
-          <a class="comments-link" href="#">14 comments</a>
+          <a class="comments-link" href="#friday-links-comments">14 comments</a>
         </div>
+        <div class="article"><p>Oria adds a “disagree with me” setting. Early reviews: “Finally, someone who gets it.”</p><p>Lustice attendance up 18%; unique attendees unchanged.</p><p>Pigeons can distinguish paintings by Monet and Picasso. The authors do not discuss whether this makes the pigeons compatible with you. A separate Google Doc does.</p></div>
         <div class="tags">
           <span class="tag">Links</span>
         </div>
       </div>
     </article>
 
+<section class="commentcard" id="friday-links-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#6b7fa3">a</div><div><div class="c-head"><span class="who">anapest</span> · 28 karma</div><div class="c-text">Update: the pigeon document is now invite-only.</div></div></div></section>
     <!-- 7 · The Sensations volume -->
-    <article class="post-card">
+    <article class="post-card" id="sensations">
       <div class="votes">
         <span class="arr">▲</span>
         <span class="knum">74</span>
@@ -510,21 +532,144 @@
       <div class="pc-body">
         <div class="t-row">
           <div class="t-main">
-            <a class="title" href="#">The Sensations: the complete introductory sequences, now in one volume</a>
+            <a class="title" href="#sensations">The Sensations: the complete introductory sequences, now in one volume</a>
             <div class="meta">
               By <a href="#">lesshard-mods</a><span class="sep">·</span>1w
             </div>
           </div>
-          <a class="comments-link" href="#">19 comments</a>
+          <a class="comments-link" href="#sensations-comments">19 comments</a>
         </div>
+        <div class="article"><p>Including <i>The Simple Truth (I Like You)</i>, <i>Fake Utility Functions</i>, <i>Belief in Relief</i>, and <i>Cached Flirting</i>.</p><p>1,842 pages. You can also just ask them for coffee.</p></div>
         <div class="tags">
           <span class="tag">The Sensations</span><span class="tag">Site</span>
         </div>
       </div>
     </article>
 
+<section class="commentcard" id="sensations-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#6b7fa3">g</div><div><div class="c-head"><span class="who">gorse</span> · 43 karma</div><div class="c-text">Is the coffee advice in the book? I’d like to read the argument first.</div></div></div></section>
+<article class="post-card" id="aumann">
+      <div class="votes"><span class="arr">▲</span><span class="knum">281</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#aumann">Aumann’s Agreement Theorem Does Not Say We Have to Get Back Together</a>
+        <div class="meta">By <a href="#aumann">vellum</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#aumann-comments">147 comments</a></div>
+      <div class="article"><p class="estat" style="font-family:var(--sans)">Epistemic status: he has requested coauthorship.</p><p>We have common priors. We have common knowledge of each other’s posteriors. We have separate apartments.</p><p>He has sent me the paper again. I have sent him his keys again.</p></div><div class="tags"><span class="tag">Decision Theory</span><span class="tag">Relationships</span></div>
+      </div></article>
+
+<section class="commentcard" id="aumann-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#8a8a5b">h</div><div><div class="c-head"><span class="who">hushpuppy</span> · −4 karma</div><div class="c-text">Strictly speaking, the theorem assumes both agents are rational.</div></div></div><div class="comment"><div class="avatar" style="background:#6b7fa3">v</div><div><div class="c-head"><span class="who">vellum</span> · 119 karma</div><div class="c-text">Yes, that was also in his email.</div></div></div></section>
+
+<article class="post-card" id="date">
+      <div class="votes"><span class="arr">▲</span><span class="knum">233</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#date">The Date Is Not the Territory</a>
+        <div class="meta">By <a href="#date">anapest</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#date-comments">63 comments</a></div>
+      <div class="article"><p class="estat" style="font-family:var(--sans)">Epistemic status: excellent on paper.</p><p>Before our first date, we exchanged relationship histories, attachment styles, conflict protocols, and forecasts for the next five years. Compatibility: 94%.</p><p>He arrived wearing a shirt that said “ASK ME ABOUT MY UTILITY FUNCTION.” I had no remaining questions.</p><p>Our debrief is Thursday.</p></div><div class="tags"><span class="tag">Field Report</span><span class="tag">Maps</span></div>
+      </div></article>
+
+<section class="commentcard" id="date-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#5b8a72">d</div><div><div class="c-head"><span class="who">dactyl</span> · 58 karma</div><div class="c-text">The other 6% was doing all the work.</div></div></div></section>
+
+<article class="post-card" id="double-crux">
+      <div class="votes"><span class="arr">▲</span><span class="knum">196</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#double-crux">Double Crux With My Ex: We Agree I Should Have Done the Dishes</a>
+        <div class="meta">By <a href="#double-crux">gorse</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#double-crux-comments">92 comments</a></div>
+      <div class="article"><p class="estat" style="font-family:var(--sans)">Epistemic status: replicated.</p><p>We spent three hours finding the belief which, if changed, would change my position. It was that she would eventually do them.</p><p>I updated. We now eat over the sink in separate apartments.</p></div><div class="tags"><span class="tag">Double Crux</span><span class="tag">Practical</span></div>
+      </div></article>
+
+<section class="commentcard" id="double-crux-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#6b7fa3">q</div><div><div class="c-head"><span class="who">quietcense</span> · 61 karma</div><div class="c-text">Have you tried doing the opposite?</div></div></div><div class="comment"><div class="avatar" style="background:#5b8a72">g</div><div><div class="c-head"><span class="who">gorse</span> · 38 karma</div><div class="c-text">I put the dishes away dirty. This was also wrong.</div></div></div></section>
+
+<article class="post-card" id="dating-market">
+      <div class="votes"><span class="arr">▲</span><span class="knum">174</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#dating-market">The Dating Market Is Efficient and I Am a Value Stock</a>
+        <div class="meta">By <a href="#dating-market">optionvalue</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#dating-market-comments">81 comments</a></div>
+      <div class="article"><p class="estat" style="font-family:var(--sans)">Epistemic status: long myself.</p><p>Single for six years, which I interpret as a buying opportunity.</p><p>Critics point to poor historical returns. I point to my fundamentals. Critics have stopped replying.</p></div><div class="tags"><span class="tag">Economics</span><span class="tag">Personal</span></div>
+      </div></article>
+
+<section class="commentcard" id="dating-market-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#6b7fa3">v</div><div><div class="c-head"><span class="who">vellum</span> · 93 karma</div><div class="c-text">Your profile says “patient capital seeking liquidity event.”</div></div></div></section>
+
+<article class="post-card" id="third">
+      <div class="votes"><span class="arr">▲</span><span class="knum">309</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#third">The Third Alternative Is a Person and She Has Plans on Saturday</a>
+        <div class="meta">By <a href="#third">mirelle</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#third-comments">104 comments</a></div>
+      <div class="article"><p>We asked her to help resolve a tension in our relationship. She asked whether we had tried resolving it before inviting her.</p><p>We had not considered the fourth alternative.</p></div><div class="tags"><span class="tag">Relationships</span><span class="tag">The Sensations</span></div>
+      </div></article>
+
+<section class="commentcard" id="third-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#5b8a72">d</div><div><div class="c-head"><span class="who">dactyl</span> · 78 karma</div><div class="c-text">Is she open to a shorter meeting on Sunday?</div></div></div><div class="comment"><div class="avatar" style="background:#6b7fa3">m</div><div><div class="c-head"><span class="who">mirelle</span> · 87 karma</div><div class="c-text">She has muted the calendar.</div></div></div></section>
+
+<article class="post-card" id="newcomb">
+      <div class="votes"><span class="arr">▲</span><span class="knum">162</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#newcomb">Newcomb’s Problem, Except Both Boxes Are “We Should Hang Out Sometime”</a>
+        <div class="meta">By <a href="#newcomb">tennen</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#newcomb-comments">56 comments</a></div>
+      <div class="article"><p>Omega has predicted whether you will suggest a specific day. It has left both boxes empty.</p></div><div class="tags"><span class="tag">Decision Theory</span><span class="tag">Coordination</span></div>
+      </div></article>
+
+<section class="commentcard" id="newcomb-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#8a8a5b">h</div><div><div class="c-head"><span class="who">hushpuppy</span> · 16 karma</div><div class="c-text">Tuesday.</div></div></div><div class="comment"><div class="avatar" style="background:#5b8a72">t</div><div><div class="c-head"><span class="who">tennen</span> · 48 karma</div><div class="c-text">Wow. Okay. I wasn’t expecting this to work.</div></div></div></section>
+
+<article class="post-card" id="house">
+      <div class="votes"><span class="arr">▲</span><span class="knum">421</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#house">Please Stop Applying Mechanism Design to the House Fridge</a>
+        <div class="meta">By <a href="#house">lesshard-mods</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#house-comments">203 comments</a></div>
+      <div class="article"><p class="estat" style="font-family:var(--sans)">Epistemic status: there is a smell.</p><p>The auction was for shelf space. It did not confer ownership of the food. Whoever purchased the milk futures owes Priya $4.</p><p>The whiteboard prediction market on whether she would notice has been closed. Whoever bet NO erased the whiteboard. We can see you in the edit history of the settlement spreadsheet.</p></div><div class="tags"><span class="tag">Housekeeping</span><span class="tag">Market Design</span></div>
+      </div></article>
+
+<section class="commentcard" id="house-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#8a8a5b">o</div><div><div class="c-head"><span class="who">optionvalue</span> · −9 karma</div><div class="c-text">Closing a market after the outcome becomes knowable undermines trust in the institution.</div></div></div><div class="comment"><div class="avatar" style="background:#a35b8a">P</div><div><div class="c-head"><span class="who">Priya</span> · 168 karma</div><div class="c-text">Four dollars.</div></div></div><div class="comment"><div class="avatar" style="background:#66707a">l</div><div><div class="c-head"><span class="who">lesshard-mods</span> · 96 karma</div><div class="c-text">“The tragedy of the comestibles” was funny the first time. Please pay Priya.</div></div></div></section>
+
+<article class="post-card" id="litany">
+      <div class="votes"><span class="arr">▲</span><span class="knum">208</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#litany">The Litany of “They’re Probably Just Busy”</a>
+        <div class="meta">By <a href="#litany">quietcense</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#litany-comments">74 comments</a></div>
+      <div class="article"><p>If they are into me, I want to believe they are into me. If they are not into me, I would like to check one more app.</p><p>They have posted twice since I sent this.</p></div><div class="tags"><span class="tag">Beliefs</span><span class="tag">Personal</span></div>
+      </div></article>
+
+<section class="commentcard" id="litany-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#5b8a72">g</div><div><div class="c-head"><span class="who">gorse</span> · 62 karma</div><div class="c-text">Were the posts long? They may have had time to post but not enough time to compose a thoughtful reply.</div></div></div><div class="comment"><div class="avatar" style="background:#6b7fa3">q</div><div><div class="c-head"><span class="who">quietcense</span> · 103 karma</div><div class="c-text">One was “anyone free tonight?”</div></div></div></section>
+
+<article class="post-card" id="cuddles">
+      <div class="votes"><span class="arr">▲</span><span class="knum">137</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#cuddles">Scope Insensitivity at the Cuddle Pile</a>
+        <div class="meta">By <a href="#cuddles">dactyl</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#cuddles-comments">38 comments</a></div>
+      <div class="article"><p>I was asked whether I preferred one cuddle or a billion cuddles. I said one. The organizer looked disappointed and wrote something down.</p><p>I am still receiving the effective cuddling newsletter.</p></div><div class="tags"><span class="tag">Scope Sensitivity</span><span class="tag">Meetups</span></div>
+      </div></article>
+
+<section class="commentcard" id="cuddles-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#8a8a5b">o</div><div><div class="c-head"><span class="who">optionvalue</span> · 27 karma</div><div class="c-text">Have you considered donating the remaining cuddles?</div></div></div></section>
+
+<article class="post-card" id="pre-registration">
+      <div class="votes"><span class="arr">▲</span><span class="knum">184</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#pre-registration">Preregistering Our Breakup</a>
+        <div class="meta">By <a href="#pre-registration">pandion</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#pre-registration-comments">69 comments</a></div>
+      <div class="article"><p>Primary endpoint: still together at six months. Secondary endpoints: still speaking, still in the same group chat, still allowed at the same climbing gym.</p><p>We broke up at five months. She wants to count it as a pilot.</p></div><div class="tags"><span class="tag">Rationality</span><span class="tag">Field Report</span></div>
+      </div></article>
+
+<section class="commentcard" id="pre-registration-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#5b8a72">m</div><div><div class="c-head"><span class="who">mirelle</span> · 85 karma</div><div class="c-text">Please publish the null result. Some of us are still dating him.</div></div></div></section>
+
+<article class="post-card" id="abstract">
+      <div class="votes"><span class="arr">▲</span><span class="knum">23</span><span class="arr">▼</span></div>
+      <div class="pc-body"><div class="t-row"><div class="t-main">
+        <a class="title" href="#abstract">Abstract: We Introduce a Novel Framework for Asking Someone Out</a>
+        <div class="meta">By <a href="#abstract">hushpuppy</a><span class="sep">·</span>1d</div>
+      </div><a class="comments-link" href="#abstract-comments">112 comments</a></div>
+      <div class="article"><p>We leave asking someone out to future work.</p></div><div class="tags"><span class="tag">Research</span><span class="tag">Unreviewed</span></div>
+      </div></article>
+
+<section class="commentcard" id="abstract-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#5b8a72">t</div><div><div class="c-head"><span class="who">tennen</span> · 74 karma</div><div class="c-text">Tuesday still works, by the way.</div></div></div><div class="comment"><div class="avatar" style="background:#8a8a5b">h</div><div><div class="c-head"><span class="who">hushpuppy</span> · 91 karma</div><div class="c-text">Oh.</div></div></div></section>
+
     <!-- 8 · Open Thread -->
-    <article class="post-card">
+    <article class="post-card" id="open-thread">
       <div class="votes">
         <span class="arr">▲</span>
         <span class="knum">41</span>
@@ -533,12 +678,12 @@
       <div class="pc-body">
         <div class="t-row">
           <div class="t-main">
-            <a class="title" href="#">Open Thread, September 2026</a>
+            <a class="title" href="#open-thread">Open Thread, September 2026</a>
             <div class="meta">
               By <a href="#">lesshard-mods</a><span class="sep">·</span>6h
             </div>
           </div>
-          <a class="comments-link" href="#">118 comments</a>
+          <a class="comments-link" href="#open-thread-comments">118 comments</a>
         </div>
         <div class="tags">
           <span class="tag">Open Thread</span>
@@ -546,6 +691,7 @@
       </div>
     </article>
 
+<section class="commentcard" id="open-thread-comments" aria-label="Selected comments"><div class="ch">Selected comments</div><div class="comment"><div class="avatar" style="background:#8a8a5b">o</div><div><div class="c-head"><span class="who">optionvalue</span> · 12 karma</div><div class="c-text">Has anyone actually tried being normal? Looking for first-person accounts, not speculation.</div></div></div><div class="comment"><div class="avatar" style="background:#5b8a72">m</div><div><div class="c-head"><span class="who">mirelle</span> · 106 karma</div><div class="c-text">For a weekend. It was nice. I didn’t take notes.</div></div></div><div class="comment"><div class="avatar" style="background:#8a8a5b">h</div><div><div class="c-head"><span class="who">hushpuppy</span> · 32 karma</div><div class="c-text">Then how do you know?</div></div></div><div class="comment"><div class="avatar" style="background:#a35b8a">P</div><div><div class="c-head"><span class="who">Priya</span> · 87 karma</div><div class="c-text">Update: I have received $4 in Manifold play money.</div></div></div></section>
   </main>
 </div>
 
@@ -555,6 +701,7 @@
   A project of the Mutual Intimacy Research Institute (MIRI)
   <span class="mid">·</span>
   Less wrong about wanting.
+  <div style="margin-top:8px;font-size:11.5px">An unofficial parody. No affiliation with LessWrong or the actual MIRI. Please do not send either institution your dating logs.</div>
 </footer>
 
 </body>
