@@ -1125,7 +1125,9 @@ Neuralese:
 
 Possible mature dialect:
 
-`A3:H_cache?__indep__RW0→result+cf`
+`A3:H_cache?0__indep→result+cf`
+
+Here `?0` uses the banner's local convention: test without writes. `RW0` would be too narrow because, under this course's dictionary, it forbids shared repository writes while still allowing other modifications. Lesson 6 examines this convention—and the danger of assuming it is universal—in more detail.
 
 ---
 
