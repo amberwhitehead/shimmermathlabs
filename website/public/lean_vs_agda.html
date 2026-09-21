@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tutorials</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>"
+    />
+    <script type="module" crossorigin>var Pe=Object.defineProperty;var Le=(t,e,n)=>e in t?Pe(t,e,{enumerable:!0,configurable:!0,writable:!0,value:n}):t[e]=n;var m=(t,e,n)=>Le(t,typeof e!="symbol"?e+"":e,n);(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const r of document.querySelectorAll('link[rel="modulepreload"]'))s(r);new MutationObserver(r=>{for(const i of r)if(i.type==="childList")for(const l of i.addedNodes)l.tagName==="LINK"&&l.rel==="modulepreload"&&s(l)}).observe(document,{childList:!0,subtree:!0});function n(r){const i={};return r.integrity&&(i.integrity=r.integrity),r.referrerPolicy&&(i.referrerPolicy=r.referrerPolicy),r.crossOrigin==="use-credentials"?i.credentials="include":r.crossOrigin==="anonymous"?i.credentials="omit":i.credentials="same-origin",i}function s(r){if(r.ep)return;r.ep=!0;const i=n(r);fetch(r.href,i)}})();const Re=`# Lean vs Agda: a mini lesson
+
+Both Lean and Agda are dependently typed programming languages and proof assistants. This lesson compares their treatment of proofs, their typical workflows, and the difference between proving existence and computing a witness.
+
+## Mini lesson
+
+### 1. Shared foundation: types can depend on values
+
+Both languages support types indexed by values: for example, a vector type indexed by its length. Both also support propositions-as-types: evidence for a proposition is a term of the corresponding type.
+
+Proving “if P then P” is an identity function.
+
+Lean:
+
+\`\`\`lean
+example (P : Prop) : P → P :=
+  fun p => p
+\`\`\`
+
+Agda:
+
+\`\`\`agda
+id : {P : Set} → P → P
+id p = p
+\`\`\`
+
+In either case, supply evidence of P and receive that evidence back. Agda’s \`Set\` is a universe of types, roughly corresponding to Lean’s \`Type\`.
+
+### 2. Proof irrelevance
+
+Lean distinguishes propositions in \`Prop\` from data in \`Type\`. Its kernel treats any two proofs of the same proposition as definitionally equal: interchangeable during type checking without requiring an additional equality proof. This is proof irrelevance. It does not identify arbitrary inhabitants of a data type.
+
+Agda commonly represents propositions as ordinary types in \`Set\`. Interpreting a type as a proposition does not automatically identify all its inhabitants. Agda also offers an optional proof-irrelevant \`Prop\` universe, so “Agda has no proof irrelevance” is too broad.
+
+### 3. Typical workflows
+
+| Aspect | Lean | Agda |
+| --- | --- | --- |
+| Common proof style | Tactics that construct proof terms | Functions, pattern matching, and filling typed holes |
+| Typical emphasis | Formal mathematics and automation | Constructive proofs and dependent programming |
+| Direct proof terms | Supported | Supported |
+| Automation | Extensive tactic tooling | Also available, with different tooling |
+
+Lean can express the same identity proof using tactics:
+
+\`\`\`lean
+example (P : Prop) : P → P := by
+  intro p
+  exact p
+\`\`\`
+
+The tactics construct a term. Lean’s kernel type checker checks that term against the theorem’s type. Tactics are not an alternative logical foundation.
+
+### 4. Checked proofs and executable computations
+
+Classical proofs still have proof terms. Classical reasoning does not bypass checking.
+
+However, a classical proof that an object exists need not give an executable method to find it. Lean can use classical choice to define a selected object, but a definition depending computationally on such choice can require \`noncomputable\`. This does not mean that no algorithm for the same mathematical function could exist; it means this definition lacks the required executable implementation.
+
+Agda can postulate classical principles, but a postulate supplies no computation rule by itself.
+
+### 5. Carrying a witness as data
+
+In Lean, compare these three types, assuming \`P : Nat → Prop\`:
+
+| Type | What an inhabitant supplies |
+| --- | --- |
+| \`∃ n : Nat, P n\` | An existence proof in \`Prop\`; not in general a computational witness you can project into \`Nat\` |
+| \`{ n : Nat // P n }\` | A subtype value in \`Type\`, containing a number \`n\` and evidence of \`P n\` |
+| \`Nat × Prop\` | A number and a proposition, without evidence that the proposition holds or a required relationship to the number |
+
+For a computationally constructed subtype value, you can project out its number. Merely placing a result in \`Type\` does not guarantee executability: the construction itself must also be computable.
+
+Agda can similarly represent a witness and its evidence as a dependent pair. A closed, total construction using computational definitions gives a witness that can be evaluated. Lean supports this approach too.
+
+**Central distinction:** having a checked proof term is not the same as having an executable method for obtaining a witness.
+
+## Question 1: proof irrelevance
+
+**Question:** You have two proofs \`p\` and \`q\` of the same proposition. How does Lean treat them when that proposition lives in \`Prop\`, and why can’t you assume the same for an ordinary Agda type in \`Set\`?
+
+### Correct answer
+
+Lean treats them as definitionally equal by proof irrelevance. Ordinary Agda types in \`Set\` do not automatically identify their inhabitants, even when interpreted as propositions.
+
+**Followup:** Correct. The qualification matters: Lean’s rule concerns proofs in \`Prop\`, and Agda also has an optional proof-irrelevant \`Prop\` universe.
+
+### Amber’s answer
+
+> lean has proof irrelevance. agda doesn't when they are just in set.
+
+**Followup:** Correct. More precisely, Lean treats proofs of the same proposition as definitionally equal, while Agda does not impose that rule on ordinary \`Set\` inhabitants.
+
+### Incorrect answer A
+
+> Lean runs both proofs and checks that they return the same result.
+
+**Followup:** Proof irrelevance does not require evaluating the proofs and comparing their outputs. The kernel treats any two proofs of the same \`Prop\` as definitionally equal.
+
+### Incorrect answer B
+
+> Both identify them because propositions-as-types means every inhabited type has exactly one value.
+
+**Followup:** Propositions-as-types says that a term can serve as evidence. It does not make every inhabited type a singleton. Ordinary data types can have many distinguishable values.
+
+## Question 2: existence versus computation
+
+**Question:** In Lean, you prove that a natural number satisfying some property exists, using classical reasoning. Why might that still fail to give you an executable function that returns such a number?
+
+### Correct answer
+
+The proof establishes existence but may supply no computational method for selecting a witness. Using classical choice to define the selected number can require \`noncomputable\`.
+
+**Followup:** Correct. The proof remains a checked term; the missing part is an executable witness-selection method.
+
+### Amber’s answer
+
+> proofs in classical reasoning don't necessarily produce proof objects, they might have noncomputable.
+
+**Followup:** Almost. Classical proofs still produce proof terms that Lean checks. What may be absent is a computational method for finding the witness.
+
+### Incorrect answer A
+
+> Lean knows how to calculate the number, but classical proofs are too slow to run.
+
+**Followup:** This is not a speed distinction. Classical choice itself supplies no executable search procedure, even one that would take a very long time.
+
+### Incorrect answer B
+
+> Proof irrelevance means Lean forgot which number the proof found.
+
+**Followup:** Proof irrelevance concerns proofs, not equality of numbers. An existence proof in \`Prop\` is not generally eliminable into computational data; moreover, a classical proof may never supply an executable witness-finding method in the first place.
+
+## Question 3: tactics and trust
+
+**Question:** A Lean tactic solves a theorem. What does it produce, and what checks that the result is valid?
+
+### Correct answer
+
+It produces a proof term, and Lean’s kernel type checker checks it against the theorem’s type.
+
+**Followup:** Correct. For ordinary proof-producing tactics, the tactic’s success report is not the justification; the checked term is.
+
+### Amber’s answer
+
+> a proof term, and the type checker
+
+**Followup:** Correct—specifically, Lean’s kernel type checker.
+
+### Incorrect answer A
+
+> It returns true, and Lean trusts the tactic because it’s part of the standard library.
+
+**Followup:** A Boolean success flag is not a proof. The tactic must supply a term that the kernel accepts as having the theorem’s type.
+
+### Incorrect answer B
+
+> It produces a convincing derivation, and another tactic reviews it.
+
+**Followup:** Tactics can assist one another, but the final check is type checking a proof term in the kernel, not a second heuristic review.
+
+## Question 4: extracting a witness
+
+**Question:** In Agda, you represent “there exists a natural number satisfying P” as a pair containing \`n : ℕ\` and evidence of \`P n\`. You construct this pair without postulates. What can you obtain from this pair that a Lean classical existence proof alone needn’t provide?
+
+### Correct answer
+
+You can project out the actual witness \`n\`; for a closed, total computational construction, you can evaluate it to a natural number.
+
+**Followup:** Correct. The pair carries the witness as data. Lean can also use computational dependent pairs or subtypes; this capability is not exclusive to Agda.
+
+### Amber’s answer
+
+> you get the actual number n
+
+**Followup:** Exactly. You can project out the witness, rather than having only an existence claim.
+
+### Incorrect answer A
+
+> You can get the proof, but the number is only a type annotation and gets erased.
+
+**Followup:** In this representation, the number is the first data component of the pair. It is available by projection; it is not merely an annotation.
+
+### Incorrect answer B
+
+> You get the smallest number satisfying P.
+
+**Followup:** You get whichever witness the construction supplies. Minimality requires an additional property and evidence for it.
+
+## Question 5: revisiting noncomputability
+
+**Question:** If a Lean definition is marked \`noncomputable\`, does that mean its supporting proof is missing or unchecked? What does it actually mean?
+
+### Correct answer
+
+No. Lean still checks the definition and any proof terms. The marker permits a definition whose computational dependencies lack executable implementations, such as classical choice. It does not prove that the same function could never have an algorithm.
+
+**Followup:** Correct. Separate logical checking, executability of this definition, and whether some other algorithm could compute the same result.
+
+### Amber’s answer
+
+> no the proof could still be good. it means there might not be a program to extract to compute the values because the program would hit noncomputable.
+
+**Followup:** Correct in substance. More precisely, this is not a runtime failure that the program eventually hits: Lean does not obtain executable code for the definition through those noncomputable dependencies.
+
+### Incorrect answer A
+
+> It’s like an unsafe block: Lean skips checking it and takes my word for it.
+
+**Followup:** \`noncomputable\` does not disable logical checking. It concerns generating executable code, not accepting unchecked proof claims.
+
+### Incorrect answer B
+
+> It means Lean has proved that no algorithm can compute this function.
+
+**Followup:** No. This particular definition may depend on classical choice even when a different, constructive definition computes the same function. An impossibility result requires its own proof.
+
+## Question 6: proofs-as-programs
+
+**Question:** Someone says, “Lean uses tactics, Agda uses programs, so only Agda follows proofs-as-programs.” What’s wrong with that claim?
+
+### Correct answer
+
+Lean tactics construct typed proof terms. Both languages represent proofs as terms of types; their common authoring workflows differ. This does not guarantee executable witness extraction from every proof.
+
+**Followup:** Correct. Distinguish how a proof is written from what the resulting proof is.
+
+### Amber’s answer
+
+> lean can extract programs from the proof term constructed from tactics
+
+**Followup:** You identified the crucial connection: tactics construct proof terms. But executable extraction is not guaranteed. Lean erases \`Prop\` proofs during compilation, and classical choice need not compute. The shared principle is that proofs are typed terms.
+
+### Incorrect answer A
+
+> The claim is right: tactics are a separate proof language outside the type system.
+
+**Followup:** Tactic syntax is a way to construct terms inside the type-theoretic foundation. The generated proof still has to type-check.
+
+### Incorrect answer B
+
+> The claim is wrong because every Lean proof compiles into a function that returns the thing proved to exist.
+
+**Followup:** That goes too far. A checked existence proof in \`Prop\` does not generally provide an executable witness-returning function, especially when classical choice is involved.
+
+## Question 7: representing certified data
+
+**Question:** In Lean, how would you represent “a natural number together with evidence that it satisfies P” so you can compute with the number? Describe the structure and which universe it belongs in.
+
+### Correct answer
+
+Use a subtype \`{ n : Nat // P n }\` in \`Type\`. An inhabitant contains a number \`n\` and evidence \`h : P n\`. A computable construction allows the number to be projected and computed with.
+
+**Followup:** Correct. The evidence’s type depends on the particular number. Being in \`Type\` makes it a data representation; the construction must also be computable.
+
+### Amber’s answer
+
+> something like a tuple with (Nat, Prop), which is in universe Type (i think)
+
+**Followup:** Yes on \`Type\` and the pair idea. The second component must be a proof of \`P n\`, tied to the first component, rather than an arbitrary proposition. Lean’s subtype notation is \`{ n : Nat // P n }\`.
+
+### Incorrect answer A
+
+> Use \`∃ n : Nat, P n\`; then just read its first field.
+
+**Followup:** Lean’s existential lives in \`Prop\` and cannot in general be projected into computational data like \`Nat\`. Use a subtype in \`Type\` when the witness needs to be available as data.
+
+### Incorrect answer B
+
+> Use \`Nat × Bool\`, with true meaning that P holds.
+
+**Followup:** A Boolean field does not establish a relationship between the number and P. You could attach \`true\` to an invalid number. You need evidence whose type specifically asserts \`P n\`.
+
+## Question 8: propositions versus evidence
+
+**Question:** Why would an ordinary pair \`Nat × Prop\` fail to express that guarantee?
+
+### Correct answer
+
+It contains a number and an arbitrary proposition, not evidence that \`P n\` holds. It also does not require the proposition to be tied to the chosen number.
+
+**Followup:** Correct. You need both the dependency on \`n\` and an inhabitant of the resulting proposition.
+
+### Amber’s answer
+
+> oh right, i see. if the second term is just Prop, it would be any proposition. not specifically a proof of P n
+
+**Followup:** Exactly. \`P n : Prop\` is a proposition, while \`h : P n\` is evidence of it. The second component needs the latter.
+
+### Incorrect answer A
+
+> It does express it, because every value of type Prop is a true proposition.
+
+**Followup:** \`False\` is also a value of type \`Prop\`. Being a proposition does not make it true; an inhabitant of that proposition would constitute evidence.
+
+### Incorrect answer B
+
+> The problem is just that the tuple fields aren’t named. A record with fields called number and proof would fix it.
+
+**Followup:** Field names do not establish the guarantee. The proof field must have type \`P number\`, not merely \`Prop\`.
+
+## Question 9: final synthesis
+
+**Question:** Give one foundational difference and one typical workflow difference between Lean and Agda.
+
+### Correct answer
+
+Lean’s \`Prop\` has definitional proof irrelevance, whereas ordinary Agda types in \`Set\` do not automatically identify their inhabitants. Lean commonly uses tactics; Agda commonly uses pattern matching and typed holes. Both support direct proof terms and automation, and Agda also offers an optional proof-irrelevant \`Prop\` universe.
+
+**Followup:** Correct. You have separated a rule of the type theory from a tendency in how people author proofs.
+
+### Amber’s answer
+
+> foundational difference: lean uses proof irrelevance, agda normally does not. typical workflow difference is lean uses tactics and agda uses programs (but both support both really).
+
+**Followup:** Correct, with scope qualifications: Lean’s proof irrelevance applies to \`Prop\`, and Agda’s ordinary \`Set\` lacks that automatic rule. “Both support both” captures the overlap, though their automation tooling differs substantially.
+
+### Incorrect answer A
+
+> Lean is classical and Agda is constructive, so Lean can prove things but can’t really be used as a programming language.
+
+**Followup:** Both support constructive reasoning and programming. Lean makes classical reasoning readily available, and Agda can postulate classical principles. The effect on computation depends on the definitions and assumptions used.
+
+### Incorrect answer B
+
+> Lean has dependent types, while Agda just uses very advanced generics. Lean writes proofs and Agda writes tests.
+
+**Followup:** Both have dependent types and both can express machine-checked proofs. An Agda proof is not merely a test on selected inputs; a term of a universally quantified type establishes the corresponding general claim.
+
+## References
+
+- [Lean: Propositions and Proofs](https://lean-lang.org/theorem_proving_in_lean4/Propositions-and-Proofs/) — propositions-as-types and proof irrelevance.
+- [Lean: Tactics](https://lean-lang.org/theorem_proving_in_lean4/Tactics/) — tactic-based construction of proofs.
+- [Lean: Axioms and Computation](https://lean-lang.org/theorem_proving_in_lean4/Axioms-and-Computation/) — classical reasoning, choice, and computation.
+- [Agda: A Taste of Agda](https://agda.readthedocs.io/en/latest/getting-started/a-taste-of-agda.html) — dependent programming and proving.
+- [Agda: Prop](https://agda.readthedocs.io/en/latest/language/prop.html) — the optional proof-irrelevant universe.
+`;function Y(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}var T=Y();function de(t){T=t}var C={exec:()=>null};function d(t,e=""){let n=typeof t=="string"?t:t.source;const s={replace:(r,i)=>{let l=typeof i=="string"?i:i.source;return l=l.replace(k.caret,"$1"),n=n.replace(r,l),s},getRegex:()=>new RegExp(n,e)};return s}var k={codeRemoveIndent:/^(?: {1,4}| {0,3}\t)/gm,outputLinkReplace:/\\([\[\]])/g,indentCodeCompensation:/^(\s+)(?:```)/,beginningSpace:/^\s+/,endingHash:/#$/,startingSpaceChar:/^ /,endingSpaceChar:/ $/,nonSpaceChar:/[^ ]/,newLineCharGlobal:/\n/g,tabCharGlobal:/\t/g,multipleSpaceGlobal:/\s+/g,blankLine:/^[ \t]*$/,doubleBlankLine:/\n[ \t]*\n[ \t]*$/,blockquoteStart:/^ {0,3}>/,blockquoteSetextReplace:/\n {0,3}((?:=+|-+) *)(?=\n|$)/g,blockquoteSetextReplace2:/^ {0,3}>[ \t]?/gm,listReplaceTabs:/^\t+/,listReplaceNesting:/^ {1,4}(?=( {4})*[^ ])/g,listIsTask:/^\[[ xX]\] /,listReplaceTask:/^\[[ xX]\] +/,anyLine:/\n.*\n/,hrefBrackets:/^<(.*)>$/,tableDelimiter:/[:|]/,tableAlignChars:/^\||\| *$/g,tableRowBlankLine:/\n[ \t]*$/,tableAlignRight:/^ *-+: *$/,tableAlignCenter:/^ *:-+: *$/,tableAlignLeft:/^ *:-+ *$/,startATag:/^<a /i,endATag:/^<\/a>/i,startPreScriptTag:/^<(pre|code|kbd|script)(\s|>)/i,endPreScriptTag:/^<\/(pre|code|kbd|script)(\s|>)/i,startAngleBracket:/^</,endAngleBracket:/>$/,pedanticHrefTitle:/^([^'"]*[^\s])\s+(['"])(.*)\2/,unicodeAlphaNumeric:/[\p{L}\p{N}]/u,escapeTest:/[&<>"']/,escapeReplace:/[&<>"']/g,escapeTestNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,escapeReplaceNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g,unescapeTest:/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig,caret:/(^|[^\[])\^/g,percentDecode:/%25/g,findPipe:/\|/g,splitPipe:/ \|/,slashPipe:/\\\|/g,carriageReturn:/\r\n|\r/g,spaceLine:/^ +$/gm,notSpaceStart:/^\S*/,endingNewline:/\n$/,listItemRegex:t=>new RegExp(`^( {0,3}${t})((?:[	 ][^\\n]*)?(?:\\n|$))`),nextBulletRegex:t=>new RegExp(`^ {0,${Math.min(3,t-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`),hrRegex:t=>new RegExp(`^ {0,${Math.min(3,t-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),fencesBeginRegex:t=>new RegExp(`^ {0,${Math.min(3,t-1)}}(?:\`\`\`|~~~)`),headingBeginRegex:t=>new RegExp(`^ {0,${Math.min(3,t-1)}}#`),htmlBeginRegex:t=>new RegExp(`^ {0,${Math.min(3,t-1)}}<(?:[a-z].*>|!--)`,"i")},Ie=/^(?:[ \t]*(?:\n|$))+/,Ce=/^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/,_e=/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,z=/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,ze=/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,W=/(?:[*+-]|\d{1,9}[.)])/,fe=/^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/,ge=d(fe).replace(/bull/g,W).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/\|table/g,"").getRegex(),qe=d(fe).replace(/bull/g,W).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/table/g,/ {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex(),X=/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,Be=/^[^\n]+/,K=/(?!\s*\])(?:\\.|[^\[\]\\])+/,Fe=d(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace("label",K).replace("title",/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex(),Ee=d(/^( {0,3}bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g,W).getRegex(),N="address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul",J=/\x3C!--(?:-?>|[\s\S]*?(?:-->|$))/,je=d("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))","i").replace("comment",J).replace("tag",N).replace("attribute",/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),me=d(X).replace("hr",z).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("|table","").replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",N).getRegex(),Ne=d(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph",me).getRegex(),V={blockquote:Ne,code:Ce,def:Fe,fences:_e,heading:ze,hr:z,html:je,lheading:ge,list:Ee,newline:Ie,paragraph:me,table:C,text:Be},oe=d("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr",z).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("blockquote"," {0,3}>").replace("code","(?: {4}| {0,3}	)[^\\n]").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",N).getRegex(),Qe={...V,lheading:qe,table:oe,paragraph:d(X).replace("hr",z).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("table",oe).replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",N).getRegex()},Me={...V,html:d(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment",J).replace(/tag/g,"(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:C,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:d(X).replace("hr",z).replace("heading",` *#{1,6} *[^
+]`).replace("lheading",ge).replace("|table","").replace("blockquote"," {0,3}>").replace("|fences","").replace("|list","").replace("|html","").replace("|tag","").getRegex()},Oe=/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,De=/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,be=/^( {2,}|\\)\n(?!\s*$)/,He=/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,Q=/[\p{P}\p{S}]/u,ee=/[\s\p{P}\p{S}]/u,ke=/[^\s\p{P}\p{S}]/u,Ze=d(/^((?![*_])punctSpace)/,"u").replace(/punctSpace/g,ee).getRegex(),we=/(?!~)[\p{P}\p{S}]/u,Ge=/(?!~)[\s\p{P}\p{S}]/u,Ue=/(?:[^\s\p{P}\p{S}]|~)/u,Ye=/\[[^[\]]*?\]\((?:\\.|[^\\\(\)]|\((?:\\.|[^\\\(\)])*\))*\)|`[^`]*?`|<[^<>]*?>/g,ye=/^(?:\*+(?:((?!\*)punct)|[^\s*]))|^_+(?:((?!_)punct)|([^\s_]))/,We=d(ye,"u").replace(/punct/g,Q).getRegex(),Xe=d(ye,"u").replace(/punct/g,we).getRegex(),xe="^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)",Ke=d(xe,"gu").replace(/notPunctSpace/g,ke).replace(/punctSpace/g,ee).replace(/punct/g,Q).getRegex(),Je=d(xe,"gu").replace(/notPunctSpace/g,Ue).replace(/punctSpace/g,Ge).replace(/punct/g,we).getRegex(),Ve=d("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)","gu").replace(/notPunctSpace/g,ke).replace(/punctSpace/g,ee).replace(/punct/g,Q).getRegex(),et=d(/\\(punct)/,"gu").replace(/punct/g,Q).getRegex(),tt=d(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme",/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email",/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex(),nt=d(J).replace("(?:-->|$)","-->").getRegex(),st=d("^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment",nt).replace("attribute",/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex(),F=/(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/,rt=d(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]*(?:\n[ \t]*)?)(title))?\s*\)/).replace("label",F).replace("href",/<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]*/).replace("title",/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex(),ve=d(/^!?\[(label)\]\[(ref)\]/).replace("label",F).replace("ref",K).getRegex(),$e=d(/^!?\[(ref)\](?:\[\])?/).replace("ref",K).getRegex(),it=d("reflink|nolink(?!\\()","g").replace("reflink",ve).replace("nolink",$e).getRegex(),te={_backpedal:C,anyPunctuation:et,autolink:tt,blockSkip:Ye,br:be,code:De,del:C,emStrongLDelim:We,emStrongRDelimAst:Ke,emStrongRDelimUnd:Ve,escape:Oe,link:rt,nolink:$e,punctuation:Ze,reflink:ve,reflinkSearch:it,tag:st,text:He,url:C},at={...te,link:d(/^!?\[(label)\]\((.*?)\)/).replace("label",F).getRegex(),reflink:d(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label",F).getRegex()},H={...te,emStrongRDelimAst:Je,emStrongLDelim:Xe,url:d(/^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,"i").replace("email",/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(),_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])((?:\\.|[^\\])*?(?:\\.|[^\s~\\]))\1(?=[^~]|$)/,text:/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/},ot={...H,br:d(be).replace("{2,}","*").getRegex(),text:d(H.text).replace("\\b_","\\b_| {2,}\\n").replace(/\{2,\}/g,"*").getRegex()},q={normal:V,gfm:Qe,pedantic:Me},R={normal:te,gfm:H,breaks:ot,pedantic:at},lt={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},le=t=>lt[t];function x(t,e){if(e){if(k.escapeTest.test(t))return t.replace(k.escapeReplace,le)}else if(k.escapeTestNoEncode.test(t))return t.replace(k.escapeReplaceNoEncode,le);return t}function ce(t){try{t=encodeURI(t).replace(k.percentDecode,"%")}catch{return null}return t}function pe(t,e){var i;const n=t.replace(k.findPipe,(l,a,u)=>{let o=!1,c=a;for(;--c>=0&&u[c]==="\\";)o=!o;return o?"|":" |"}),s=n.split(k.splitPipe);let r=0;if(s[0].trim()||s.shift(),s.length>0&&!((i=s.at(-1))!=null&&i.trim())&&s.pop(),e)if(s.length>e)s.splice(e);else for(;s.length<e;)s.push("");for(;r<s.length;r++)s[r]=s[r].trim().replace(k.slashPipe,"|");return s}function I(t,e,n){const s=t.length;if(s===0)return"";let r=0;for(;r<s&&t.charAt(s-r-1)===e;)r++;return t.slice(0,s-r)}function ct(t,e){if(t.indexOf(e[1])===-1)return-1;let n=0;for(let s=0;s<t.length;s++)if(t[s]==="\\")s++;else if(t[s]===e[0])n++;else if(t[s]===e[1]&&(n--,n<0))return s;return n>0?-2:-1}function ue(t,e,n,s,r){const i=e.href,l=e.title||null,a=t[1].replace(r.other.outputLinkReplace,"$1");s.state.inLink=!0;const u={type:t[0].charAt(0)==="!"?"image":"link",raw:n,href:i,title:l,text:a,tokens:s.inlineTokens(a)};return s.state.inLink=!1,u}function pt(t,e,n){const s=t.match(n.other.indentCodeCompensation);if(s===null)return e;const r=s[1];return e.split(`
+`).map(i=>{const l=i.match(n.other.beginningSpace);if(l===null)return i;const[a]=l;return a.length>=r.length?i.slice(r.length):i}).join(`
+`)}var E=class{constructor(t){m(this,"options");m(this,"rules");m(this,"lexer");this.options=t||T}space(t){const e=this.rules.block.newline.exec(t);if(e&&e[0].length>0)return{type:"space",raw:e[0]}}code(t){const e=this.rules.block.code.exec(t);if(e){const n=e[0].replace(this.rules.other.codeRemoveIndent,"");return{type:"code",raw:e[0],codeBlockStyle:"indented",text:this.options.pedantic?n:I(n,`
+`)}}}fences(t){const e=this.rules.block.fences.exec(t);if(e){const n=e[0],s=pt(n,e[3]||"",this.rules);return{type:"code",raw:n,lang:e[2]?e[2].trim().replace(this.rules.inline.anyPunctuation,"$1"):e[2],text:s}}}heading(t){const e=this.rules.block.heading.exec(t);if(e){let n=e[2].trim();if(this.rules.other.endingHash.test(n)){const s=I(n,"#");(this.options.pedantic||!s||this.rules.other.endingSpaceChar.test(s))&&(n=s.trim())}return{type:"heading",raw:e[0],depth:e[1].length,text:n,tokens:this.lexer.inline(n)}}}hr(t){const e=this.rules.block.hr.exec(t);if(e)return{type:"hr",raw:I(e[0],`
+`)}}blockquote(t){const e=this.rules.block.blockquote.exec(t);if(e){let n=I(e[0],`
+`).split(`
+`),s="",r="";const i=[];for(;n.length>0;){let l=!1;const a=[];let u;for(u=0;u<n.length;u++)if(this.rules.other.blockquoteStart.test(n[u]))a.push(n[u]),l=!0;else if(!l)a.push(n[u]);else break;n=n.slice(u);const o=a.join(`
+`),c=o.replace(this.rules.other.blockquoteSetextReplace,`
+    $1`).replace(this.rules.other.blockquoteSetextReplace2,"");s=s?`${s}
+${o}`:o,r=r?`${r}
+${c}`:c;const f=this.lexer.state.top;if(this.lexer.state.top=!0,this.lexer.blockTokens(c,i,!0),this.lexer.state.top=f,n.length===0)break;const p=i.at(-1);if((p==null?void 0:p.type)==="code")break;if((p==null?void 0:p.type)==="blockquote"){const b=p,g=b.raw+`
+`+n.join(`
+`),w=this.blockquote(g);i[i.length-1]=w,s=s.substring(0,s.length-b.raw.length)+w.raw,r=r.substring(0,r.length-b.text.length)+w.text;break}else if((p==null?void 0:p.type)==="list"){const b=p,g=b.raw+`
+`+n.join(`
+`),w=this.list(g);i[i.length-1]=w,s=s.substring(0,s.length-p.raw.length)+w.raw,r=r.substring(0,r.length-b.raw.length)+w.raw,n=g.substring(i.at(-1).raw.length).split(`
+`);continue}}return{type:"blockquote",raw:s,tokens:i,text:r}}}list(t){let e=this.rules.block.list.exec(t);if(e){let n=e[1].trim();const s=n.length>1,r={type:"list",raw:"",ordered:s,start:s?+n.slice(0,-1):"",loose:!1,items:[]};n=s?`\\d{1,9}\\${n.slice(-1)}`:`\\${n}`,this.options.pedantic&&(n=s?n:"[*+-]");const i=this.rules.other.listItemRegex(n);let l=!1;for(;t;){let u=!1,o="",c="";if(!(e=i.exec(t))||this.rules.block.hr.test(t))break;o=e[0],t=t.substring(o.length);let f=e[2].split(`
+`,1)[0].replace(this.rules.other.listReplaceTabs,M=>" ".repeat(3*M.length)),p=t.split(`
+`,1)[0],b=!f.trim(),g=0;if(this.options.pedantic?(g=2,c=f.trimStart()):b?g=e[1].length+1:(g=e[2].search(this.rules.other.nonSpaceChar),g=g>4?1:g,c=f.slice(g),g+=e[1].length),b&&this.rules.other.blankLine.test(p)&&(o+=p+`
+`,t=t.substring(p.length+1),u=!0),!u){const M=this.rules.other.nextBulletRegex(g),re=this.rules.other.hrRegex(g),ie=this.rules.other.fencesBeginRegex(g),ae=this.rules.other.headingBeginRegex(g),Se=this.rules.other.htmlBeginRegex(g);for(;t;){const O=t.split(`
+`,1)[0];let L;if(p=O,this.options.pedantic?(p=p.replace(this.rules.other.listReplaceNesting,"  "),L=p):L=p.replace(this.rules.other.tabCharGlobal,"    "),ie.test(p)||ae.test(p)||Se.test(p)||M.test(p)||re.test(p))break;if(L.search(this.rules.other.nonSpaceChar)>=g||!p.trim())c+=`
+`+L.slice(g);else{if(b||f.replace(this.rules.other.tabCharGlobal,"    ").search(this.rules.other.nonSpaceChar)>=4||ie.test(f)||ae.test(f)||re.test(f))break;c+=`
+`+p}!b&&!p.trim()&&(b=!0),o+=O+`
+`,t=t.substring(O.length+1),f=L.slice(g)}}r.loose||(l?r.loose=!0:this.rules.other.doubleBlankLine.test(o)&&(l=!0));let w=null,se;this.options.gfm&&(w=this.rules.other.listIsTask.exec(c),w&&(se=w[0]!=="[ ] ",c=c.replace(this.rules.other.listReplaceTask,""))),r.items.push({type:"list_item",raw:o,task:!!w,checked:se,loose:!1,text:c,tokens:[]}),r.raw+=o}const a=r.items.at(-1);if(a)a.raw=a.raw.trimEnd(),a.text=a.text.trimEnd();else return;r.raw=r.raw.trimEnd();for(let u=0;u<r.items.length;u++)if(this.lexer.state.top=!1,r.items[u].tokens=this.lexer.blockTokens(r.items[u].text,[]),!r.loose){const o=r.items[u].tokens.filter(f=>f.type==="space"),c=o.length>0&&o.some(f=>this.rules.other.anyLine.test(f.raw));r.loose=c}if(r.loose)for(let u=0;u<r.items.length;u++)r.items[u].loose=!0;return r}}html(t){const e=this.rules.block.html.exec(t);if(e)return{type:"html",block:!0,raw:e[0],pre:e[1]==="pre"||e[1]==="script"||e[1]==="style",text:e[0]}}def(t){const e=this.rules.block.def.exec(t);if(e){const n=e[1].toLowerCase().replace(this.rules.other.multipleSpaceGlobal," "),s=e[2]?e[2].replace(this.rules.other.hrefBrackets,"$1").replace(this.rules.inline.anyPunctuation,"$1"):"",r=e[3]?e[3].substring(1,e[3].length-1).replace(this.rules.inline.anyPunctuation,"$1"):e[3];return{type:"def",tag:n,raw:e[0],href:s,title:r}}}table(t){var l;const e=this.rules.block.table.exec(t);if(!e||!this.rules.other.tableDelimiter.test(e[2]))return;const n=pe(e[1]),s=e[2].replace(this.rules.other.tableAlignChars,"").split("|"),r=(l=e[3])!=null&&l.trim()?e[3].replace(this.rules.other.tableRowBlankLine,"").split(`
+`):[],i={type:"table",raw:e[0],header:[],align:[],rows:[]};if(n.length===s.length){for(const a of s)this.rules.other.tableAlignRight.test(a)?i.align.push("right"):this.rules.other.tableAlignCenter.test(a)?i.align.push("center"):this.rules.other.tableAlignLeft.test(a)?i.align.push("left"):i.align.push(null);for(let a=0;a<n.length;a++)i.header.push({text:n[a],tokens:this.lexer.inline(n[a]),header:!0,align:i.align[a]});for(const a of r)i.rows.push(pe(a,i.header.length).map((u,o)=>({text:u,tokens:this.lexer.inline(u),header:!1,align:i.align[o]})));return i}}lheading(t){const e=this.rules.block.lheading.exec(t);if(e)return{type:"heading",raw:e[0],depth:e[2].charAt(0)==="="?1:2,text:e[1],tokens:this.lexer.inline(e[1])}}paragraph(t){const e=this.rules.block.paragraph.exec(t);if(e){const n=e[1].charAt(e[1].length-1)===`
+`?e[1].slice(0,-1):e[1];return{type:"paragraph",raw:e[0],text:n,tokens:this.lexer.inline(n)}}}text(t){const e=this.rules.block.text.exec(t);if(e)return{type:"text",raw:e[0],text:e[0],tokens:this.lexer.inline(e[0])}}escape(t){const e=this.rules.inline.escape.exec(t);if(e)return{type:"escape",raw:e[0],text:e[1]}}tag(t){const e=this.rules.inline.tag.exec(t);if(e)return!this.lexer.state.inLink&&this.rules.other.startATag.test(e[0])?this.lexer.state.inLink=!0:this.lexer.state.inLink&&this.rules.other.endATag.test(e[0])&&(this.lexer.state.inLink=!1),!this.lexer.state.inRawBlock&&this.rules.other.startPreScriptTag.test(e[0])?this.lexer.state.inRawBlock=!0:this.lexer.state.inRawBlock&&this.rules.other.endPreScriptTag.test(e[0])&&(this.lexer.state.inRawBlock=!1),{type:"html",raw:e[0],inLink:this.lexer.state.inLink,inRawBlock:this.lexer.state.inRawBlock,block:!1,text:e[0]}}link(t){const e=this.rules.inline.link.exec(t);if(e){const n=e[2].trim();if(!this.options.pedantic&&this.rules.other.startAngleBracket.test(n)){if(!this.rules.other.endAngleBracket.test(n))return;const i=I(n.slice(0,-1),"\\");if((n.length-i.length)%2===0)return}else{const i=ct(e[2],"()");if(i===-2)return;if(i>-1){const a=(e[0].indexOf("!")===0?5:4)+e[1].length+i;e[2]=e[2].substring(0,i),e[0]=e[0].substring(0,a).trim(),e[3]=""}}let s=e[2],r="";if(this.options.pedantic){const i=this.rules.other.pedanticHrefTitle.exec(s);i&&(s=i[1],r=i[3])}else r=e[3]?e[3].slice(1,-1):"";return s=s.trim(),this.rules.other.startAngleBracket.test(s)&&(this.options.pedantic&&!this.rules.other.endAngleBracket.test(n)?s=s.slice(1):s=s.slice(1,-1)),ue(e,{href:s&&s.replace(this.rules.inline.anyPunctuation,"$1"),title:r&&r.replace(this.rules.inline.anyPunctuation,"$1")},e[0],this.lexer,this.rules)}}reflink(t,e){let n;if((n=this.rules.inline.reflink.exec(t))||(n=this.rules.inline.nolink.exec(t))){const s=(n[2]||n[1]).replace(this.rules.other.multipleSpaceGlobal," "),r=e[s.toLowerCase()];if(!r){const i=n[0].charAt(0);return{type:"text",raw:i,text:i}}return ue(n,r,n[0],this.lexer,this.rules)}}emStrong(t,e,n=""){let s=this.rules.inline.emStrongLDelim.exec(t);if(!s||s[3]&&n.match(this.rules.other.unicodeAlphaNumeric))return;if(!(s[1]||s[2]||"")||!n||this.rules.inline.punctuation.exec(n)){const i=[...s[0]].length-1;let l,a,u=i,o=0;const c=s[0][0]==="*"?this.rules.inline.emStrongRDelimAst:this.rules.inline.emStrongRDelimUnd;for(c.lastIndex=0,e=e.slice(-1*t.length+i);(s=c.exec(e))!=null;){if(l=s[1]||s[2]||s[3]||s[4]||s[5]||s[6],!l)continue;if(a=[...l].length,s[3]||s[4]){u+=a;continue}else if((s[5]||s[6])&&i%3&&!((i+a)%3)){o+=a;continue}if(u-=a,u>0)continue;a=Math.min(a,a+u+o);const f=[...s[0]][0].length,p=t.slice(0,i+s.index+f+a);if(Math.min(i,a)%2){const g=p.slice(1,-1);return{type:"em",raw:p,text:g,tokens:this.lexer.inlineTokens(g)}}const b=p.slice(2,-2);return{type:"strong",raw:p,text:b,tokens:this.lexer.inlineTokens(b)}}}}codespan(t){const e=this.rules.inline.code.exec(t);if(e){let n=e[2].replace(this.rules.other.newLineCharGlobal," ");const s=this.rules.other.nonSpaceChar.test(n),r=this.rules.other.startingSpaceChar.test(n)&&this.rules.other.endingSpaceChar.test(n);return s&&r&&(n=n.substring(1,n.length-1)),{type:"codespan",raw:e[0],text:n}}}br(t){const e=this.rules.inline.br.exec(t);if(e)return{type:"br",raw:e[0]}}del(t){const e=this.rules.inline.del.exec(t);if(e)return{type:"del",raw:e[0],text:e[2],tokens:this.lexer.inlineTokens(e[2])}}autolink(t){const e=this.rules.inline.autolink.exec(t);if(e){let n,s;return e[2]==="@"?(n=e[1],s="mailto:"+n):(n=e[1],s=n),{type:"link",raw:e[0],text:n,href:s,tokens:[{type:"text",raw:n,text:n}]}}}url(t){var n;let e;if(e=this.rules.inline.url.exec(t)){let s,r;if(e[2]==="@")s=e[0],r="mailto:"+s;else{let i;do i=e[0],e[0]=((n=this.rules.inline._backpedal.exec(e[0]))==null?void 0:n[0])??"";while(i!==e[0]);s=e[0],e[1]==="www."?r="http://"+e[0]:r=e[0]}return{type:"link",raw:e[0],text:s,href:r,tokens:[{type:"text",raw:s,text:s}]}}}inlineText(t){const e=this.rules.inline.text.exec(t);if(e){const n=this.lexer.state.inRawBlock;return{type:"text",raw:e[0],text:e[0],escaped:n}}}},v=class Z{constructor(e){m(this,"tokens");m(this,"options");m(this,"state");m(this,"tokenizer");m(this,"inlineQueue");this.tokens=[],this.tokens.links=Object.create(null),this.options=e||T,this.options.tokenizer=this.options.tokenizer||new E,this.tokenizer=this.options.tokenizer,this.tokenizer.options=this.options,this.tokenizer.lexer=this,this.inlineQueue=[],this.state={inLink:!1,inRawBlock:!1,top:!0};const n={other:k,block:q.normal,inline:R.normal};this.options.pedantic?(n.block=q.pedantic,n.inline=R.pedantic):this.options.gfm&&(n.block=q.gfm,this.options.breaks?n.inline=R.breaks:n.inline=R.gfm),this.tokenizer.rules=n}static get rules(){return{block:q,inline:R}}static lex(e,n){return new Z(n).lex(e)}static lexInline(e,n){return new Z(n).inlineTokens(e)}lex(e){e=e.replace(k.carriageReturn,`
+`),this.blockTokens(e,this.tokens);for(let n=0;n<this.inlineQueue.length;n++){const s=this.inlineQueue[n];this.inlineTokens(s.src,s.tokens)}return this.inlineQueue=[],this.tokens}blockTokens(e,n=[],s=!1){var r,i,l;for(this.options.pedantic&&(e=e.replace(k.tabCharGlobal,"    ").replace(k.spaceLine,""));e;){let a;if((i=(r=this.options.extensions)==null?void 0:r.block)!=null&&i.some(o=>(a=o.call({lexer:this},e,n))?(e=e.substring(a.raw.length),n.push(a),!0):!1))continue;if(a=this.tokenizer.space(e)){e=e.substring(a.raw.length);const o=n.at(-1);a.raw.length===1&&o!==void 0?o.raw+=`
+`:n.push(a);continue}if(a=this.tokenizer.code(e)){e=e.substring(a.raw.length);const o=n.at(-1);(o==null?void 0:o.type)==="paragraph"||(o==null?void 0:o.type)==="text"?(o.raw+=`
+`+a.raw,o.text+=`
+`+a.text,this.inlineQueue.at(-1).src=o.text):n.push(a);continue}if(a=this.tokenizer.fences(e)){e=e.substring(a.raw.length),n.push(a);continue}if(a=this.tokenizer.heading(e)){e=e.substring(a.raw.length),n.push(a);continue}if(a=this.tokenizer.hr(e)){e=e.substring(a.raw.length),n.push(a);continue}if(a=this.tokenizer.blockquote(e)){e=e.substring(a.raw.length),n.push(a);continue}if(a=this.tokenizer.list(e)){e=e.substring(a.raw.length),n.push(a);continue}if(a=this.tokenizer.html(e)){e=e.substring(a.raw.length),n.push(a);continue}if(a=this.tokenizer.def(e)){e=e.substring(a.raw.length);const o=n.at(-1);(o==null?void 0:o.type)==="paragraph"||(o==null?void 0:o.type)==="text"?(o.raw+=`
+`+a.raw,o.text+=`
+`+a.raw,this.inlineQueue.at(-1).src=o.text):this.tokens.links[a.tag]||(this.tokens.links[a.tag]={href:a.href,title:a.title});continue}if(a=this.tokenizer.table(e)){e=e.substring(a.raw.length),n.push(a);continue}if(a=this.tokenizer.lheading(e)){e=e.substring(a.raw.length),n.push(a);continue}let u=e;if((l=this.options.extensions)!=null&&l.startBlock){let o=1/0;const c=e.slice(1);let f;this.options.extensions.startBlock.forEach(p=>{f=p.call({lexer:this},c),typeof f=="number"&&f>=0&&(o=Math.min(o,f))}),o<1/0&&o>=0&&(u=e.substring(0,o+1))}if(this.state.top&&(a=this.tokenizer.paragraph(u))){const o=n.at(-1);s&&(o==null?void 0:o.type)==="paragraph"?(o.raw+=`
+`+a.raw,o.text+=`
+`+a.text,this.inlineQueue.pop(),this.inlineQueue.at(-1).src=o.text):n.push(a),s=u.length!==e.length,e=e.substring(a.raw.length);continue}if(a=this.tokenizer.text(e)){e=e.substring(a.raw.length);const o=n.at(-1);(o==null?void 0:o.type)==="text"?(o.raw+=`
+`+a.raw,o.text+=`
+`+a.text,this.inlineQueue.pop(),this.inlineQueue.at(-1).src=o.text):n.push(a);continue}if(e){const o="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(o);break}else throw new Error(o)}}return this.state.top=!0,n}inline(e,n=[]){return this.inlineQueue.push({src:e,tokens:n}),n}inlineTokens(e,n=[]){var a,u,o;let s=e,r=null;if(this.tokens.links){const c=Object.keys(this.tokens.links);if(c.length>0)for(;(r=this.tokenizer.rules.inline.reflinkSearch.exec(s))!=null;)c.includes(r[0].slice(r[0].lastIndexOf("[")+1,-1))&&(s=s.slice(0,r.index)+"["+"a".repeat(r[0].length-2)+"]"+s.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex))}for(;(r=this.tokenizer.rules.inline.anyPunctuation.exec(s))!=null;)s=s.slice(0,r.index)+"++"+s.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);for(;(r=this.tokenizer.rules.inline.blockSkip.exec(s))!=null;)s=s.slice(0,r.index)+"["+"a".repeat(r[0].length-2)+"]"+s.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);let i=!1,l="";for(;e;){i||(l=""),i=!1;let c;if((u=(a=this.options.extensions)==null?void 0:a.inline)!=null&&u.some(p=>(c=p.call({lexer:this},e,n))?(e=e.substring(c.raw.length),n.push(c),!0):!1))continue;if(c=this.tokenizer.escape(e)){e=e.substring(c.raw.length),n.push(c);continue}if(c=this.tokenizer.tag(e)){e=e.substring(c.raw.length),n.push(c);continue}if(c=this.tokenizer.link(e)){e=e.substring(c.raw.length),n.push(c);continue}if(c=this.tokenizer.reflink(e,this.tokens.links)){e=e.substring(c.raw.length);const p=n.at(-1);c.type==="text"&&(p==null?void 0:p.type)==="text"?(p.raw+=c.raw,p.text+=c.text):n.push(c);continue}if(c=this.tokenizer.emStrong(e,s,l)){e=e.substring(c.raw.length),n.push(c);continue}if(c=this.tokenizer.codespan(e)){e=e.substring(c.raw.length),n.push(c);continue}if(c=this.tokenizer.br(e)){e=e.substring(c.raw.length),n.push(c);continue}if(c=this.tokenizer.del(e)){e=e.substring(c.raw.length),n.push(c);continue}if(c=this.tokenizer.autolink(e)){e=e.substring(c.raw.length),n.push(c);continue}if(!this.state.inLink&&(c=this.tokenizer.url(e))){e=e.substring(c.raw.length),n.push(c);continue}let f=e;if((o=this.options.extensions)!=null&&o.startInline){let p=1/0;const b=e.slice(1);let g;this.options.extensions.startInline.forEach(w=>{g=w.call({lexer:this},b),typeof g=="number"&&g>=0&&(p=Math.min(p,g))}),p<1/0&&p>=0&&(f=e.substring(0,p+1))}if(c=this.tokenizer.inlineText(f)){e=e.substring(c.raw.length),c.raw.slice(-1)!=="_"&&(l=c.raw.slice(-1)),i=!0;const p=n.at(-1);(p==null?void 0:p.type)==="text"?(p.raw+=c.raw,p.text+=c.text):n.push(c);continue}if(e){const p="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(p);break}else throw new Error(p)}}return n}},j=class{constructor(t){m(this,"options");m(this,"parser");this.options=t||T}space(t){return""}code({text:t,lang:e,escaped:n}){var i;const s=(i=(e||"").match(k.notSpaceStart))==null?void 0:i[0],r=t.replace(k.endingNewline,"")+`
+`;return s?'<pre><code class="language-'+x(s)+'">'+(n?r:x(r,!0))+`</code></pre>
+`:"<pre><code>"+(n?r:x(r,!0))+`</code></pre>
+`}blockquote({tokens:t}){return`<blockquote>
+${this.parser.parse(t)}</blockquote>
+`}html({text:t}){return t}heading({tokens:t,depth:e}){return`<h${e}>${this.parser.parseInline(t)}</h${e}>
+`}hr(t){return`<hr>
+`}list(t){const e=t.ordered,n=t.start;let s="";for(let l=0;l<t.items.length;l++){const a=t.items[l];s+=this.listitem(a)}const r=e?"ol":"ul",i=e&&n!==1?' start="'+n+'"':"";return"<"+r+i+`>
+`+s+"</"+r+`>
+`}listitem(t){var n;let e="";if(t.task){const s=this.checkbox({checked:!!t.checked});t.loose?((n=t.tokens[0])==null?void 0:n.type)==="paragraph"?(t.tokens[0].text=s+" "+t.tokens[0].text,t.tokens[0].tokens&&t.tokens[0].tokens.length>0&&t.tokens[0].tokens[0].type==="text"&&(t.tokens[0].tokens[0].text=s+" "+x(t.tokens[0].tokens[0].text),t.tokens[0].tokens[0].escaped=!0)):t.tokens.unshift({type:"text",raw:s+" ",text:s+" ",escaped:!0}):e+=s+" "}return e+=this.parser.parse(t.tokens,!!t.loose),`<li>${e}</li>
+`}checkbox({checked:t}){return"<input "+(t?'checked="" ':"")+'disabled="" type="checkbox">'}paragraph({tokens:t}){return`<p>${this.parser.parseInline(t)}</p>
+`}table(t){let e="",n="";for(let r=0;r<t.header.length;r++)n+=this.tablecell(t.header[r]);e+=this.tablerow({text:n});let s="";for(let r=0;r<t.rows.length;r++){const i=t.rows[r];n="";for(let l=0;l<i.length;l++)n+=this.tablecell(i[l]);s+=this.tablerow({text:n})}return s&&(s=`<tbody>${s}</tbody>`),`<table>
+<thead>
+`+e+`</thead>
+`+s+`</table>
+`}tablerow({text:t}){return`<tr>
+${t}</tr>
+`}tablecell(t){const e=this.parser.parseInline(t.tokens),n=t.header?"th":"td";return(t.align?`<${n} align="${t.align}">`:`<${n}>`)+e+`</${n}>
+`}strong({tokens:t}){return`<strong>${this.parser.parseInline(t)}</strong>`}em({tokens:t}){return`<em>${this.parser.parseInline(t)}</em>`}codespan({text:t}){return`<code>${x(t,!0)}</code>`}br(t){return"<br>"}del({tokens:t}){return`<del>${this.parser.parseInline(t)}</del>`}link({href:t,title:e,tokens:n}){const s=this.parser.parseInline(n),r=ce(t);if(r===null)return s;t=r;let i='<a href="'+t+'"';return e&&(i+=' title="'+x(e)+'"'),i+=">"+s+"</a>",i}image({href:t,title:e,text:n,tokens:s}){s&&(n=this.parser.parseInline(s,this.parser.textRenderer));const r=ce(t);if(r===null)return x(n);t=r;let i=`<img src="${t}" alt="${n}"`;return e&&(i+=` title="${x(e)}"`),i+=">",i}text(t){return"tokens"in t&&t.tokens?this.parser.parseInline(t.tokens):"escaped"in t&&t.escaped?t.text:x(t.text)}},ne=class{strong({text:t}){return t}em({text:t}){return t}codespan({text:t}){return t}del({text:t}){return t}html({text:t}){return t}text({text:t}){return t}link({text:t}){return""+t}image({text:t}){return""+t}br(){return""}},$=class G{constructor(e){m(this,"options");m(this,"renderer");m(this,"textRenderer");this.options=e||T,this.options.renderer=this.options.renderer||new j,this.renderer=this.options.renderer,this.renderer.options=this.options,this.renderer.parser=this,this.textRenderer=new ne}static parse(e,n){return new G(n).parse(e)}static parseInline(e,n){return new G(n).parseInline(e)}parse(e,n=!0){var r,i;let s="";for(let l=0;l<e.length;l++){const a=e[l];if((i=(r=this.options.extensions)==null?void 0:r.renderers)!=null&&i[a.type]){const o=a,c=this.options.extensions.renderers[o.type].call({parser:this},o);if(c!==!1||!["space","hr","heading","code","table","blockquote","list","html","paragraph","text"].includes(o.type)){s+=c||"";continue}}const u=a;switch(u.type){case"space":{s+=this.renderer.space(u);continue}case"hr":{s+=this.renderer.hr(u);continue}case"heading":{s+=this.renderer.heading(u);continue}case"code":{s+=this.renderer.code(u);continue}case"table":{s+=this.renderer.table(u);continue}case"blockquote":{s+=this.renderer.blockquote(u);continue}case"list":{s+=this.renderer.list(u);continue}case"html":{s+=this.renderer.html(u);continue}case"paragraph":{s+=this.renderer.paragraph(u);continue}case"text":{let o=u,c=this.renderer.text(o);for(;l+1<e.length&&e[l+1].type==="text";)o=e[++l],c+=`
+`+this.renderer.text(o);n?s+=this.renderer.paragraph({type:"paragraph",raw:c,text:c,tokens:[{type:"text",raw:c,text:c,escaped:!0}]}):s+=c;continue}default:{const o='Token with "'+u.type+'" type was not found.';if(this.options.silent)return console.error(o),"";throw new Error(o)}}}return s}parseInline(e,n=this.renderer){var r,i;let s="";for(let l=0;l<e.length;l++){const a=e[l];if((i=(r=this.options.extensions)==null?void 0:r.renderers)!=null&&i[a.type]){const o=this.options.extensions.renderers[a.type].call({parser:this},a);if(o!==!1||!["escape","html","link","image","strong","em","codespan","br","del","text"].includes(a.type)){s+=o||"";continue}}const u=a;switch(u.type){case"escape":{s+=n.text(u);break}case"html":{s+=n.html(u);break}case"link":{s+=n.link(u);break}case"image":{s+=n.image(u);break}case"strong":{s+=n.strong(u);break}case"em":{s+=n.em(u);break}case"codespan":{s+=n.codespan(u);break}case"br":{s+=n.br(u);break}case"del":{s+=n.del(u);break}case"text":{s+=n.text(u);break}default:{const o='Token with "'+u.type+'" type was not found.';if(this.options.silent)return console.error(o),"";throw new Error(o)}}}return s}},D,B=(D=class{constructor(t){m(this,"options");m(this,"block");this.options=t||T}preprocess(t){return t}postprocess(t){return t}processAllTokens(t){return t}provideLexer(){return this.block?v.lex:v.lexInline}provideParser(){return this.block?$.parse:$.parseInline}},m(D,"passThroughHooks",new Set(["preprocess","postprocess","processAllTokens"])),D),ut=class{constructor(...t){m(this,"defaults",Y());m(this,"options",this.setOptions);m(this,"parse",this.parseMarkdown(!0));m(this,"parseInline",this.parseMarkdown(!1));m(this,"Parser",$);m(this,"Renderer",j);m(this,"TextRenderer",ne);m(this,"Lexer",v);m(this,"Tokenizer",E);m(this,"Hooks",B);this.use(...t)}walkTokens(t,e){var s,r;let n=[];for(const i of t)switch(n=n.concat(e.call(this,i)),i.type){case"table":{const l=i;for(const a of l.header)n=n.concat(this.walkTokens(a.tokens,e));for(const a of l.rows)for(const u of a)n=n.concat(this.walkTokens(u.tokens,e));break}case"list":{const l=i;n=n.concat(this.walkTokens(l.items,e));break}default:{const l=i;(r=(s=this.defaults.extensions)==null?void 0:s.childTokens)!=null&&r[l.type]?this.defaults.extensions.childTokens[l.type].forEach(a=>{const u=l[a].flat(1/0);n=n.concat(this.walkTokens(u,e))}):l.tokens&&(n=n.concat(this.walkTokens(l.tokens,e)))}}return n}use(...t){const e=this.defaults.extensions||{renderers:{},childTokens:{}};return t.forEach(n=>{const s={...n};if(s.async=this.defaults.async||s.async||!1,n.extensions&&(n.extensions.forEach(r=>{if(!r.name)throw new Error("extension name required");if("renderer"in r){const i=e.renderers[r.name];i?e.renderers[r.name]=function(...l){let a=r.renderer.apply(this,l);return a===!1&&(a=i.apply(this,l)),a}:e.renderers[r.name]=r.renderer}if("tokenizer"in r){if(!r.level||r.level!=="block"&&r.level!=="inline")throw new Error("extension level must be 'block' or 'inline'");const i=e[r.level];i?i.unshift(r.tokenizer):e[r.level]=[r.tokenizer],r.start&&(r.level==="block"?e.startBlock?e.startBlock.push(r.start):e.startBlock=[r.start]:r.level==="inline"&&(e.startInline?e.startInline.push(r.start):e.startInline=[r.start]))}"childTokens"in r&&r.childTokens&&(e.childTokens[r.name]=r.childTokens)}),s.extensions=e),n.renderer){const r=this.defaults.renderer||new j(this.defaults);for(const i in n.renderer){if(!(i in r))throw new Error(`renderer '${i}' does not exist`);if(["options","parser"].includes(i))continue;const l=i,a=n.renderer[l],u=r[l];r[l]=(...o)=>{let c=a.apply(r,o);return c===!1&&(c=u.apply(r,o)),c||""}}s.renderer=r}if(n.tokenizer){const r=this.defaults.tokenizer||new E(this.defaults);for(const i in n.tokenizer){if(!(i in r))throw new Error(`tokenizer '${i}' does not exist`);if(["options","rules","lexer"].includes(i))continue;const l=i,a=n.tokenizer[l],u=r[l];r[l]=(...o)=>{let c=a.apply(r,o);return c===!1&&(c=u.apply(r,o)),c}}s.tokenizer=r}if(n.hooks){const r=this.defaults.hooks||new B;for(const i in n.hooks){if(!(i in r))throw new Error(`hook '${i}' does not exist`);if(["options","block"].includes(i))continue;const l=i,a=n.hooks[l],u=r[l];B.passThroughHooks.has(i)?r[l]=o=>{if(this.defaults.async)return Promise.resolve(a.call(r,o)).then(f=>u.call(r,f));const c=a.call(r,o);return u.call(r,c)}:r[l]=(...o)=>{let c=a.apply(r,o);return c===!1&&(c=u.apply(r,o)),c}}s.hooks=r}if(n.walkTokens){const r=this.defaults.walkTokens,i=n.walkTokens;s.walkTokens=function(l){let a=[];return a.push(i.call(this,l)),r&&(a=a.concat(r.call(this,l))),a}}this.defaults={...this.defaults,...s}}),this}setOptions(t){return this.defaults={...this.defaults,...t},this}lexer(t,e){return v.lex(t,e??this.defaults)}parser(t,e){return $.parse(t,e??this.defaults)}parseMarkdown(t){return(n,s)=>{const r={...s},i={...this.defaults,...r},l=this.onError(!!i.silent,!!i.async);if(this.defaults.async===!0&&r.async===!1)return l(new Error("marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise."));if(typeof n>"u"||n===null)return l(new Error("marked(): input parameter is undefined or null"));if(typeof n!="string")return l(new Error("marked(): input parameter is of type "+Object.prototype.toString.call(n)+", string expected"));i.hooks&&(i.hooks.options=i,i.hooks.block=t);const a=i.hooks?i.hooks.provideLexer():t?v.lex:v.lexInline,u=i.hooks?i.hooks.provideParser():t?$.parse:$.parseInline;if(i.async)return Promise.resolve(i.hooks?i.hooks.preprocess(n):n).then(o=>a(o,i)).then(o=>i.hooks?i.hooks.processAllTokens(o):o).then(o=>i.walkTokens?Promise.all(this.walkTokens(o,i.walkTokens)).then(()=>o):o).then(o=>u(o,i)).then(o=>i.hooks?i.hooks.postprocess(o):o).catch(l);try{i.hooks&&(n=i.hooks.preprocess(n));let o=a(n,i);i.hooks&&(o=i.hooks.processAllTokens(o)),i.walkTokens&&this.walkTokens(o,i.walkTokens);let c=u(o,i);return i.hooks&&(c=i.hooks.postprocess(c)),c}catch(o){return l(o)}}}onError(t,e){return n=>{if(n.message+=`
+Please report this to https://github.com/markedjs/marked.`,t){const s="<p>An error occurred:</p><pre>"+x(n.message+"",!0)+"</pre>";return e?Promise.resolve(s):s}if(e)return Promise.reject(n);throw n}}},A=new ut;function h(t,e){return A.parse(t,e)}h.options=h.setOptions=function(t){return A.setOptions(t),h.defaults=A.defaults,de(h.defaults),h};h.getDefaults=Y;h.defaults=T;h.use=function(...t){return A.use(...t),h.defaults=A.defaults,de(h.defaults),h};h.walkTokens=function(t,e){return A.walkTokens(t,e)};h.parseInline=A.parseInline;h.Parser=$;h.parser=$.parse;h.Renderer=j;h.TextRenderer=ne;h.Lexer=v;h.lexer=v.lex;h.Tokenizer=E;h.Hooks=B;h.parse=h;h.options;h.setOptions;h.use;h.walkTokens;h.parseInline;$.parse;v.lex;const S=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"),y=t=>h.parseInline(t??""),ht=t=>t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"section",dt={lean:/(?<comment>--[^\n]*)|(?<str>"(?:[^"\\]|\\.)*")|(?<kw>\b(?:fun|example|theorem|lemma|def|by|intro|exact|noncomputable|Prop|Type|Nat|axiom|inductive|structure|instance|abbrev|opaque|open|import|namespace|end|universe)\b)|(?<num>\b\d+\b)|(?<op>:=|→|->|←|⇒|×|λ|∃|∀|Σ|[(){}:,.;])/g,agda:/(?<comment>--[^\n]*)|(?<str>"(?:[^"\\]|\\.)*")|(?<kw>\b(?:Set|Set₁|Prop|postulate|data|where|open|import|module|record|field|let|in)\b)|(?<num>\b\d+\b)|(?<op>:=|→|->|←|⇒|×|λ|∃|∀|Σ|ℕ|[(){}:,.;])/g};function ft(t,e){const n=dt[e];if(!n)return S(t);let s="",r=0;for(const i of t.matchAll(n)){s+=S(t.slice(r,i.index));const l=i.groups.comment?"c":i.groups.str?"s":i.groups.kw?"k":i.groups.num?"n":"o";s+=`<span class="hl-${l}">${S(i[0])}</span>`,r=i.index+i[0].length}return s+S(t.slice(r))}function gt(t){const e=(t.lang||"").trim().toLowerCase(),n=e?`<figcaption class="code-lang">${S(e)}</figcaption>`:"";return`<figure class="code${e?` lang-${e}`:""}">${n}<pre><code>${ft(t.text,e)}</code></pre></figure>`}const he=(t,e)=>`<${e}>${y(typeof t=="string"?t:t.text)}</${e}>`;function mt(t){const e=`<tr>${t.header.map(s=>he(s,"th")).join("")}</tr>`,n=t.rows.map(s=>`<tr>${s.map(r=>he(r,"td")).join("")}</tr>`).join("");return`<div class="table-wrap"><table><thead>${e}</thead><tbody>${n}</tbody></table></div>`}function bt(t){return`<blockquote>${(t.tokens||[]).map(n=>n.type==="paragraph"?y(n.text):"").join(" ")}</blockquote>`}function Ae(t){return`<ul>${(t.items||[]).map(n=>`<li>${(n.tokens||[]).map(r=>r.type==="text"||r.type==="paragraph"?y(r.text):r.type==="list"?Ae(r):"").join(" ")}</li>`).join("")}</ul>`}function kt(t){const e=t.text??"",n=/^\*\*Followup:\*\*\s*/;if(n.test(e))return`<p class="followup"><span class="tag">Followup ↳</span> ${y(e.replace(n,""))}</p>`;const s=/^\*\*Central distinction:\*\*\s*/;return s.test(e)?`<div class="callout"><span class="tag">Central distinction ✨</span> ${y(e.replace(s,""))}</div>`:`<p>${y(e)}</p>`}function U(t){return(t||[]).map(e=>{switch(e.type){case"paragraph":return kt(e);case"code":return gt(e);case"table":return mt(e);case"blockquote":return bt(e);case"list":return Ae(e);case"heading":return`<h4>${y(e.text)}</h4>`;default:return""}}).join(`
+`)}function wt(t){return/^correct answer/i.test(t)?{cls:"b-correct",icon:"✓"}:/^amber/i.test(t)?{cls:"b-amber",icon:"💬"}:/^incorrect/i.test(t)?{cls:"b-wrong",icon:"✗"}:{cls:"b-info",icon:"›"}}function yt(t,e="lesson"){const n=h.lexer(t);let s="Untitled lesson";const r=[];let i=null;const l=[];for(const p of n)if(p.type!=="space"){if(p.type==="heading"&&p.depth===1){s=y(p.text);continue}if(p.type==="heading"&&p.depth===2){i={heading:p.text,kids:[]};const b=/^Question\s+(\d+)\s*:\s*(.*)$/i.exec(p.text);b?(i.kind="question",i.num=Number(b[1]),i.name=b[2],i.id=`q${i.num}`):(i.id=ht(p.text),/how to use/i.test(p.text)?i.kind="howto":/^references/i.test(p.text)?i.kind="refs":i.kind="lesson"),l.push(i);continue}if(p.type==="heading"&&p.depth===3){((i==null?void 0:i.kids)??r).push({marker:"h3",text:p.text});continue}if(!i){p.type==="paragraph"&&r.push(p.text);continue}i.kids.push(p)}const a=r.map(p=>typeof p=="string"?`<p>${y(p)}</p>`:""),u=l.map(p=>xt(p)),o=l.filter(p=>p.kind==="question"),c=l.map(p=>p.kind==="question"?{id:p.id,label:`Q${p.num} · ${p.name}`}:{id:p.id,label:p.heading}),f=(t.match(/\S+/g)||[]).length;return{key:e,titleHtml:s,intro:a,sections:u,toc:c,meta:{questions:o.length,words:f,minutes:Math.max(1,Math.round(f/200))}}}function xt(t){return t.kind==="question"?$t(t):vt(t)}function vt(t){let e="",n=[];const s=()=>{n.length&&(e+=`<div class="blocks">${U(n)}</div>`,n=[])};for(const r of t.kids)if(r.marker==="h3"){s();const i=/^(\d+)\.\s+(.*)$/.exec(r.text),l=i?`<span class="numbadge">${i[1]}</span>`:"",a=i?i[2]:r.text;e+=`<h3 class="subhead">${l}${y(a)}</h3>`}else n.push(r);return s(),t.kind==="refs"&&(e=e.replace(/<a /g,'<a target="_blank" rel="noopener" ')),t.kind==="howto"||t.kind,{id:t.id,kind:t.kind,heading:t.heading,html:`<section class="card kind-${t.kind}" id="${t.id}">
+      <h2 class="sec-title">${y(t.heading)}</h2>
+      ${e}
+    </section>`}}function $t(t){const e=[],n=[];let s=null;for(const l of t.kids){if(l.marker==="h3"){s={title:l.text,blocks:[]},n.push(s);continue}s?s.blocks.push(l):e.push(l)}const r=U(e).replace("<p><strong>Question:</strong> ",'<p class="qtext">'),i=n.map(l=>{const a=wt(l.title);return`<details class="bank ${a.cls}">
+        <summary><span class="bank-icon" aria-hidden="true">${a.icon}</span>${S(l.title)}<span class="peek">peek</span></summary>
+        <div class="bank-body">${U(l.blocks)}</div>
+      </details>`}).join(`
+`);return{id:t.id,kind:"question",heading:t.heading,num:t.num,name:t.name,html:`<section class="card question" id="${t.id}">
+      <header class="q-head">
+        <span class="q-badge" aria-hidden="true">Q${t.num}</span>
+        <h3 class="q-title">${y(t.name)}</h3>
+      </header>
+      <div class="q-prompt">${r}</div>
+      <p class="try-hint">✏️ Answer in your own words first — then peek below.</p>
+      ${i}
+    </section>`}}const At=Object.assign({"../lean_vs_agda_lesson.md":Re}),Tt=t=>t.replace(/[_-]+/g," ").replace(/\b\w/g,e=>e.toUpperCase()),_=Object.entries(At).map(([t,e])=>{const n=t.split("/").pop().replace(/\.md$/,"");return{key:n,display:Tt(n),parsed:yt(e,n)}}).sort((t,e)=>t.display.localeCompare(e.display)),St=document.getElementById("app");let P=_[0];function Pt(t){const{parsed:e}=t;return`
+  <div class="shell">
+    <header class="hero">
+      <h1 class="hero-title">${e.titleHtml}</h1>
+      ${e.intro[0]?`<p class="hero-sub">${e.intro[0]}</p>`:""}
+      ${e.intro[1]?`<p class="hero-note">${e.intro[1]}</p>`:""}
+      <div class="hero-chips">
+        <span class="chip">⏱ about ${e.meta.minutes} min</span>
+      </div>
+    </header>
+    ${_.length>1?'<nav class="lesson-tabs" id="lessonTabs"></nav>':""}
+    <div class="layout">
+      <nav class="toc" aria-label="Lesson outline">
+        <span class="toc-title">Outline</span>
+        <ul id="tocList"></ul>
+      </nav>
+      <main class="content" id="content"></main>
+    </div>
+    <footer class="foot">
+      Answers hide behind <em>peek</em> buttons so you get to try first. Happy learning! 🌱
+    </footer>
+  </div>`}function Te(){St.innerHTML=Pt(P);const t=document.getElementById("content"),e=document.getElementById("tocList");t.innerHTML=P.parsed.sections.map(n=>n.html).join(""),e.innerHTML=P.parsed.toc.map(n=>`<li><a href="#${n.id}">${n.label}</a></li>`).join(""),_.length>1&&Lt(),Rt()}function Lt(){const t=document.getElementById("lessonTabs");t.innerHTML=_.map(e=>`<button type="button" class="tab${e===P?" active":""}" data-key="${e.key}">${e.display}</button>`).join(""),t.addEventListener("click",e=>{const n=e.target.closest(".tab");if(!n)return;const s=_.find(r=>r.key===n.dataset.key);s&&s!==P&&(P=s,Te(),scrollTo({top:0}))})}function Rt(){const t=new Map([...document.querySelectorAll("#tocList a")].map(n=>[n.hash.slice(1),n])),e=new IntersectionObserver(n=>{var s;for(const r of n)if(r.isIntersecting){for(const[,i]of t)i.classList.remove("active");(s=t.get(r.target.id))==null||s.classList.add("active")}},{rootMargin:"-15% 0px -70% 0px"});for(const n of document.querySelectorAll(".content section[id]"))e.observe(n)}Te();</script>
+    <style rel="stylesheet" crossorigin>:root{--bg: #ffffff;--bg-soft: #f5f5f5;--ink: #111111;--muted: #555555;--faint: #999999;--line: #dddddd;--border: #e0e0e0;--link: #3873ad;--sidebar-link: #356da4;--rust: #ad7c37;--rust-deep: #8a5a1d;--font-serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;--font-sans: "Fira Sans", "Segoe UI", Arial, system-ui, sans-serif;--font-mono: "Source Code Pro", "Fira Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;--font-round: ui-rounded, -apple-system, "SF Pro Rounded", "Hiragino Maru Gothic ProN", Quicksand, Comfortaa, "Varela Round", Nunito, system-ui, "Segoe UI", sans-serif;--radius: 4px}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;font:1rem/1.6 var(--font-serif);font-feature-settings:"kern","liga";color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}.shell{max-width:980px;margin:0 auto;padding:34px 24px 80px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 240px;grid-template-areas:"content toc";gap:36px;align-items:start}.content{grid-area:content;display:flex;flex-direction:column;gap:28px;min-width:0}.hero{margin:0 0 28px;padding:34px 36px 30px;border-radius:10px;color:#fff;font-family:var(--font-round);background:linear-gradient(135deg,#c73e3e,#b85c20 48%,#96610e);box-shadow:0 12px 28px -18px #783c148c}.hero-title{margin:0 0 10px;font-size:clamp(1.5rem,3vw,1.9rem);font-weight:700;line-height:1.25;letter-spacing:-.01em;color:#fff;text-wrap:balance}.hero-sub{margin:0 0 4px;max-width:68ch;font-size:1.05rem;color:#fff}.hero-note{margin:0 0 12px;max-width:68ch;font-size:.9rem;color:#ffffffe0}.hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}.chip{padding:3px 11px;border-radius:999px;background:#ffffff38;color:#fff;font-size:.8rem;font-weight:600}.toc{grid-area:toc;position:sticky;top:20px;padding:14px 10px;border-radius:var(--radius);background:var(--bg-soft);border:1px solid var(--line)}.toc-title{display:block;margin:0 0 8px;padding:0 10px;font-family:var(--font-sans);font-size:.75rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.toc ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px;max-height:80vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#cfcfcf transparent}.toc ul::-webkit-scrollbar{width:6px}.toc ul::-webkit-scrollbar-thumb{background:#cfcfcf;border-radius:3px}.toc a{display:block;padding:4px 8px 4px 10px;border-left:2px solid transparent;border-radius:3px;font-family:var(--font-sans);font-size:.85rem;color:var(--sidebar-link);text-decoration:none}.toc a:hover{background:#e0e0e0;color:var(--ink)}.toc a.active{background:#fff;border-left-color:var(--rust);color:var(--ink);font-weight:600}.card{padding:22px 26px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border)}.sec-title{margin:0 0 16px;padding-bottom:6px;border-bottom:1px solid var(--line);font-family:var(--font-sans);font-size:1.375rem;font-weight:500;line-height:1.25;color:var(--ink)}.subhead{margin:24px 0 10px;font-family:var(--font-sans);font-size:1.05rem;font-weight:500;color:var(--ink)}.numbadge{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:8px;border-radius:3px;background:var(--rust);color:#fff;font-family:var(--font-sans);font-size:.78rem;font-weight:500;flex:none}.blocks>*:first-child{margin-top:0}.blocks>*:last-child{margin-bottom:0}.blocks+.subhead{margin-top:24px}.q-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}.q-badge{display:inline-grid;place-items:center;min-width:40px;height:24px;padding:0 8px;border-radius:3px;border:1px solid var(--line);background:var(--bg-soft);color:var(--muted);font-family:var(--font-sans);font-weight:500;font-size:.8rem;flex:none;align-self:center}.q-title{margin:0;font-family:var(--font-sans);font-size:1.125rem;font-weight:500}.q-prompt p{margin:6px 0}.qtext{font-size:1.02rem}.try-hint{margin:10px 0 14px;font-family:var(--font-sans);font-size:.8rem;color:var(--muted)}.bank{margin:10px 0;border-radius:var(--radius);border:1px solid;overflow:hidden}.bank summary{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-family:var(--font-sans);font-weight:500;font-size:.9rem;list-style:none;-webkit-user-select:none;user-select:none}.bank summary::-webkit-details-marker{display:none}.bank summary:hover{filter:brightness(.97)}.bank-icon{font-size:.85rem;flex:none}.peek{margin-left:auto;font-size:.7rem;font-weight:400;letter-spacing:.08em;text-transform:uppercase;opacity:.65}.bank[open] .peek:after{content:"ed"}.bank summary:after{content:"▾";font-size:.85rem;opacity:.5;transition:transform .2s}.bank[open] summary:after{transform:rotate(180deg)}.bank-body{padding:4px 16px 14px;background:#fff;border-top:1px solid var(--border);font-size:.98rem}.bank-body p,.bank-body blockquote{margin:10px 0}.bank-body>*:first-child{margin-top:8px}.bank-body>*:last-child{margin-bottom:6px}.b-correct{border-color:#c4d9a8}.b-correct summary{background:#f3f8ea;color:#4e6600}.b-amber{border-color:#e8cfa4}.b-amber summary{background:#fdf4e3;color:#8a5a00}.b-wrong{border-color:#e3b3b3}.b-wrong summary{background:#fdefef;color:#a02222}.b-info{border-color:#d4c7e3}.b-info summary{background:#f5f1f8;color:#6d4b91}.followup{padding:10px 14px;border-radius:var(--radius);background:#f5f1f8;font-size:.95rem}.followup .tag{font-family:var(--font-sans);font-weight:600;color:#8959a8;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}.callout{margin:14px 0;padding:14px 18px;border-radius:var(--radius);border-left:3px solid var(--rust);background:#faf5ee}.callout .tag{display:block;margin-bottom:4px;font-family:var(--font-sans);font-weight:600;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--rust-deep)}p{margin:0 0 .75em}a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:#3873ad73}a:focus-visible,summary:focus-visible,.tab:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:2px}::selection{background:#cfe0f1}blockquote{margin:12px 0;padding:6px 18px;border-left:3px solid var(--line);color:#444;font-style:italic}blockquote p{margin:0}ul{margin:10px 0;padding-left:26px}li{margin:5px 0}.table-wrap{margin:14px 0;border-radius:var(--radius);border:1px solid var(--line);overflow-x:auto;background:#fff}table{border-collapse:collapse;width:100%;font-family:var(--font-sans);font-size:.875rem}th,td{padding:9px 14px;text-align:left;border-bottom:1px solid var(--border)}th{background:var(--bg-soft);font-weight:500;white-space:nowrap}tbody tr:last-child td{border-bottom:none}tbody tr:nth-child(2n){background:#fafafa}td code{white-space:nowrap}code{font-family:var(--font-mono);font-size:.875em;padding:1px 5px;border-radius:3px;background:var(--bg-soft);color:#333}.code{position:relative;margin:14px 0}.code-lang{position:absolute;top:8px;right:10px;z-index:1;padding:1px 8px;border-radius:3px;background:#e0e0e0;color:var(--muted);font-family:var(--font-sans);font-size:.7rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase}.code pre{margin:0;padding:14px 16px;border-radius:var(--radius);border:1px solid var(--line);background:var(--bg-soft);overflow-x:auto;-moz-tab-size:4;tab-size:4}.code pre code{display:block;padding:0;background:none;color:#333;font-size:.875rem;line-height:1.5}.hl-k{color:#8959a8}.hl-s{color:#718c00}.hl-c{color:#8e908c;font-style:italic}.hl-n{color:#718c00}.hl-o{color:#4271ae}.lesson-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}.tab{padding:6px 16px;border-radius:3px;border:1px solid var(--line);background:#fff;font-family:var(--font-sans);font-weight:400;color:var(--ink);cursor:pointer}.tab.active{border-color:var(--link);background:var(--link);color:#fff}.foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);text-align:center;font-family:var(--font-sans);font-size:.8rem;color:var(--faint)}@media(max-width:920px){.layout{grid-template-columns:1fr;grid-template-areas:"toc" "content";gap:18px}.toc{position:static;padding:12px}.toc ul{flex-direction:row;overflow-x:auto;padding-bottom:4px;max-height:none}.toc a{white-space:nowrap;padding:5px 12px}.card{padding:18px 16px}.hero{padding:18px 0 14px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.bank summary:after{transition:none}}@media print{.toc,.try-hint{display:none}body{background:#fff}.card{border:none;padding:0}.hero{background:none;box-shadow:none;color:var(--ink)}.hero-title,.hero-sub,.hero-note{color:inherit}.chip{background:var(--bg-soft);color:var(--muted)}}</style>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
